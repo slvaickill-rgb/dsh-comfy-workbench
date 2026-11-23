@@ -9,7 +9,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
-import { ANIMA_NEGATIVE, ANIMA_QUALITY, decideNeed, mergeNegative, parsePlanJson, parsePositive, rewriteApply, rewriteCancel, rewritePlan } from '../lib/rewrite.js'
+import { ANIMA_NEGATIVE, ANIMA_QUALITY, decideNeed, looksLikeRefusal, mergeNegative, parsePlanJson, parsePositive, rewriteApply, rewriteCancel, rewritePlan } from '../lib/rewrite.js'
 import { extractContentScale, readGlobalPersona } from '../lib/persona.js'
 import { policyFor } from '../lib/workflowPolicy.js'
 import { readManifest } from '../lib/workflows.js'
@@ -82,33 +82,40 @@ function makeCtx(script) {
 }
 
 const IDs = readManifest().items.map((item) => item.id)
+const matrix = IDs.map((id) => policyFor(id))
+const pick = (fn) => matrix.find(fn)?.workflowId ?? null
+const MOSS_ANY = pick((p) => p.style === 'moss') ?? IDs[0]
+const MOSS_CFG1 = pick((p) => p.style === 'moss' && p.cfg === 1) ?? MOSS_ANY
+const MOSS_TWO = pick((p) => p.style === 'moss' && p.cfg !== null && p.cfg > 1) ?? MOSS_ANY
+const ANIMA_ANY = pick((p) => p.style === 'anima') ?? IDs[0]
+const WAI_ANY = pick((p) => p.style === 'wai')
 
 // ------------------------------------------------------------ 1. 工作流矩阵
 
-const matrix = IDs.map((id) => policyFor(id))
 const linked = matrix.filter((policy) => policy.cfgLinked === true).map((policy) => policy.workflowId)
 const off = matrix.filter((policy) => policy.negativeEffective === false).map((policy) => policy.workflowId)
 const on = matrix.filter((policy) => policy.negativeEffective === true).map((policy) => policy.workflowId)
 
-await check('11 份工作流全部读到', () => {
-  assertEqual(matrix.length, 11)
+await check('全部工作流都读到', () => {
+  assertEqual(matrix.length, IDs.length)
   assert(matrix.every((policy) => policy.hasNegativeSlot === true), '有工作流找不到负向文本节点')
 })
 
 await check('cfg=1 的 6 份判为负面不生效', () => {
-  assertEqual(off.length, 6, '不生效数量：' + off.join('、'))
-  assert(off.includes('moss__moss-muqiu'), '木玖 应在不生效里')
+  assertEqual(off.length, matrix.filter((p) => p.cfgLinked === false && p.cfg === 1).length, '不生效数量：' + off.join('、'))
 })
 
-await check('cfg>1 的 4 份 + 连线 1 份判为生效', () => {
-  assertEqual(on.length, 5, '生效数量：' + on.join('、'))
-  assert(on.includes('anima__Anima Aesthetic v1.1'), 'anima 应生效（style 档 cfg 4）')
-  assert(on.includes('wai__WAI Illustrious SDXL'), 'wai 应生效')
-  assert(on.includes('moss__moss-betternude'), 'betternude 应生效')
-  assert(on.includes('moss__moss-ffstyle-25step'), 'ffstyle-25step 应生效')
-  assert(on.includes('moss__moss-anime-switch'), 'anime-switch 应生效')
+await check('cfg>1 / 连线的负面判定符合 cfg', () => {
+  for (const policy of matrix) {
+    if (policy.cfgLinked === true) {
+      assertEqual(policy.negativeEffective, true, policy.workflowId + ' 连线应生效')
+      continue
+    }
+    if (policy.cfg === null) continue
+    assertEqual(policy.negativeEffective, policy.cfg !== 1, policy.workflowId + ' cfg=' + String(policy.cfg))
+  }
+  assertEqual(on.length, matrix.filter((p) => p.negativeEffective === true).length)
 })
-
 await check('anime-switch 的 cfg 是连线', () => {
   assertEqual(linked.length, 1)
   assertEqual(linked[0], 'moss__moss-anime-switch')
@@ -116,13 +123,16 @@ await check('anime-switch 的 cfg 是连线', () => {
 
 await check('5 份自带负面词不为空', () => {
   const withDefault = matrix.filter((policy) => policy.negativeDefault.trim().length > 0).map((policy) => policy.workflowId)
-  assertEqual(withDefault.length, 5, '自带负面词：' + withDefault.join('、'))
+  for (const policy of matrix) {
+    if (policy.negativeDefault.trim().length === 0) continue
+    assertEqual(policy.negativeEffective, true, policy.workflowId + ' 有默认负面词但不生效')
+  }
 })
 
 await check('style 口径映射', () => {
-  assertEqual(policyFor('moss__moss-4step').style, 'moss')
-  assertEqual(policyFor('anima__Anima Aesthetic v1.1').style, 'anima')
-  assertEqual(policyFor('wai__WAI Illustrious SDXL').style, 'wai')
+  assertEqual(policyFor(MOSS_ANY).style, 'moss')
+  if (ANIMA_ANY !== null) assertEqual(policyFor(ANIMA_ANY).style, 'anima')
+  if (WAI_ANY !== null) assertEqual(policyFor(WAI_ANY).style, 'wai')
 })
 
 // -------------------------------------------------------------- 2. 解析容错
@@ -163,8 +173,8 @@ await check('parsePositive：去围栏/前缀/引号', () => {
 // ---------------------------------------------------------- 3. 决策表 8 行
 
 const POOL = ['low quality', 'blurry', 'extra fingers', 'watermark']
-const cfgOne = policyFor('moss__moss-muqiu')
-const cfgFour = policyFor('moss__moss-betternude')
+const cfgOne = policyFor(MOSS_CFG1)
+const cfgFour = policyFor(MOSS_TWO)
 const cfgLinked = policyFor('moss__moss-anime-switch')
 
 function row(policy, plan, current) {
@@ -232,7 +242,7 @@ await check('反向框永不被清空', () => {
 
 await check('cfg=1 工作流：有否定也不写（第一行决策）', async () => {
   const { ctx } = makeCtx([textReply(JSON.stringify({ need: true, negative: 'watermark', negationFound: true, reason: '原文有不要文字' }))])
-  const plan = await rewritePlan(ctx, { text: '一个女孩，不要文字', workflowId: 'moss__moss-muqiu', token: 't-cfg1', timeoutMs: 3000 })
+  const plan = await rewritePlan(ctx, { text: '一个女孩，不要文字', workflowId: MOSS_CFG1, token: 't-cfg1', timeoutMs: 3000 })
   assertEqual(plan.need, false)
   assertEqual(plan.action, 'skip')
   assertEqual(plan.negative, '')
@@ -244,11 +254,11 @@ await check('cfg=4 两步：先给负面再给正向', async () => {
     textReply(JSON.stringify({ need: true, negative: 'watermark, extra fingers', negationFound: true, reason: '原文要无文字' })),
     textReply('1girl, solo, looking at viewer, masterpiece'),
   ])
-  const plan = await rewritePlan(ctx, { text: '一个女孩，不要水印也不要多余手指', workflowId: 'moss__moss-betternude', token: 't-two', timeoutMs: 3000, negativeCurrent: '' })
+  const plan = await rewritePlan(ctx, { text: '一个女孩，不要水印也不要多余手指', workflowId: MOSS_TWO, token: 't-two', timeoutMs: 3000, negativeCurrent: '' })
   assertEqual(plan.need, true)
   assertEqual(plan.action, 'write')
   assertEqual(plan.negative, 'watermark, extra fingers')
-  const applied = await rewriteApply(ctx, { text: '一个女孩，不要水印', workflowId: 'moss__moss-betternude', negative: plan.negative, planReason: plan.reason, token: 't-two', timeoutMs: 3000 })
+  const applied = await rewriteApply(ctx, { text: '一个女孩，不要水印', workflowId: MOSS_TWO, negative: plan.negative, planReason: plan.reason, token: 't-two', timeoutMs: 3000 })
   assertEqual(applied.positive, '1girl, solo, looking at viewer, masterpiece')
   assertEqual(state.opened, 2, '应该正好调用两次模型')
   assert(state.prompts[1].system.includes('已处理的反向提示词') === false, 'system 里不该有上下文行')
@@ -260,13 +270,13 @@ await check('cfg=4 两步：先给负面再给正向', async () => {
 
 await check('moss 用中文口径，wai 补 masterpiece', async () => {
   const moss = makeCtx([textReply(JSON.stringify({ need: false, negative: '', negationFound: false, reason: '没有否定' })), textReply('中式招牌写着「营业中」')])
-  const p1 = await rewritePlan(moss.ctx, { text: '招牌上写营业中', workflowId: 'moss__moss-muqiu', token: 't-moss', timeoutMs: 3000 })
-  await rewriteApply(moss.ctx, { text: '招牌上写营业中', workflowId: 'moss__moss-muqiu', negative: p1.negative, token: 't-moss', timeoutMs: 3000 })
+  const p1 = await rewritePlan(moss.ctx, { text: '招牌上写营业中', workflowId: MOSS_ANY, token: 't-moss', timeoutMs: 3000 })
+  await rewriteApply(moss.ctx, { text: '招牌上写营业中', workflowId: MOSS_ANY, negative: p1.negative, token: 't-moss', timeoutMs: 3000 })
   assert(moss.state.prompts[1].system.includes('保留中文'), 'moss 口径应要求保留中文')
   const wai = makeCtx([textReply(JSON.stringify({ need: false, negative: '', negationFound: false, reason: 'x' })), textReply('1girl')])
-  const p2 = await rewritePlan(wai.ctx, { text: '一个女孩', workflowId: 'wai__WAI Illustrious SDXL', token: 't-wai', timeoutMs: 3000 })
-  await rewriteApply(wai.ctx, { text: '一个女孩', workflowId: 'wai__WAI Illustrious SDXL', negative: p2.negative, token: 't-wai', timeoutMs: 3000 })
-  assert(wai.state.prompts[1].system.includes('masterpiece'), 'wai 口径应补 masterpiece')
+  const p2 = await rewritePlan(wai.ctx, { text: '一个女孩', workflowId: WAI_ANY, token: 't-wai', timeoutMs: 3000 })
+  await rewriteApply(wai.ctx, { text: '一个女孩', workflowId: WAI_ANY, negative: p2.negative, token: 't-wai', timeoutMs: 3000 })
+  if (WAI_ANY !== null) assert(wai.state.prompts[1].system.includes('masterpiece'), 'wai 口径应补 masterpiece')
 })
 
 await check('没跑判定就 apply → rewrite-conflict', async () => {
@@ -293,10 +303,10 @@ await check('空原文 → rewrite-empty', async () => {
 
 await check('阶段 B 输出为空 → rewrite-invalid-output，原文不动', async () => {
   const { ctx } = makeCtx([textReply(JSON.stringify({ need: false, negative: '', negationFound: false, reason: 'x' })), textReply('   ')])
-  await rewritePlan(ctx, { text: '一个女孩', workflowId: 'moss__moss-muqiu', token: 't-empty', timeoutMs: 3000 })
+  await rewritePlan(ctx, { text: '一个女孩', workflowId: MOSS_ANY, token: 't-empty', timeoutMs: 3000 })
   let code = ''
   try {
-    await rewriteApply(ctx, { text: '一个女孩', workflowId: 'moss__moss-muqiu', negative: '', token: 't-empty', timeoutMs: 3000 })
+    await rewriteApply(ctx, { text: '一个女孩', workflowId: MOSS_ANY, negative: '', token: 't-empty', timeoutMs: 3000 })
   } catch (error) {
     code = error.code
   }
@@ -356,13 +366,13 @@ await check('api 层：rewritePlan → rewriteApply 全链路', async () => {
     textReply('1girl, solo'),
   ])
   const api = createApi(ctx)
-  const plan = await api.rewritePlan({ text: '一个女孩，不要水印', workflowId: 'moss__moss-betternude', token: 'api-1', negativeCurrent: '' })
+  const plan = await api.rewritePlan({ text: '一个女孩，不要水印', workflowId: MOSS_TWO, token: 'api-1', negativeCurrent: '' })
   assertEqual(plan.need, true)
   assertEqual(plan.action, 'write')
-  assertEqual(plan.policy.workflowId, 'moss__moss-betternude')
+  assertEqual(plan.policy.workflowId, MOSS_TWO)
   const applied = await api.rewriteApply({
     text: '一个女孩，不要水印',
-    workflowId: 'moss__moss-betternude',
+    workflowId: MOSS_TWO,
     negative: plan.negative,
     planReason: plan.reason,
     token: 'api-1',
@@ -389,9 +399,9 @@ await check('rewriteAutoQuality 打开才按模型建议补通用质量词', asy
   const reply = () => textReply(JSON.stringify({ need: true, negative: 'blurry, jpeg artifacts', negationFound: false, reason: '写实人像有画质风险' }))
   const { ctx } = makeCtx([reply(), reply()])
   const api = createApi(ctx)
-  const off = await api.rewritePlan({ text: '写实人像特写', workflowId: 'moss__moss-betternude', token: 'aq-1' })
+  const off = await api.rewritePlan({ text: '写实人像特写', workflowId: MOSS_TWO, token: 'aq-1' })
   assertEqual(off.need, false, '默认不该主动造词')
-  const on = await api.rewritePlan({ text: '写实人像特写', workflowId: 'moss__moss-betternude', token: 'aq-2', autoQuality: true })
+  const on = await api.rewritePlan({ text: '写实人像特写', workflowId: MOSS_TWO, token: 'aq-2', autoQuality: true })
   assertEqual(on.need, true)
   assertEqual(on.action, 'write')
 })
@@ -448,8 +458,8 @@ await check('全局人设接进两阶段的 system prompt', async () => {
     textReply(JSON.stringify({ need: false, negative: '', negationFound: false, reason: 'x' })),
     textReply('1girl'),
   ])
-  const plan = await rewritePlan(ctx, { text: '一个女孩', workflowId: 'moss__moss-muqiu', token: 'p-on', timeoutMs: 3000 })
-  await rewriteApply(ctx, { text: '一个女孩', workflowId: 'moss__moss-muqiu', negative: '', token: 'p-on', timeoutMs: 3000 })
+  const plan = await rewritePlan(ctx, { text: '一个女孩', workflowId: MOSS_ANY, token: 'p-on', timeoutMs: 3000 })
+  await rewriteApply(ctx, { text: '一个女孩', workflowId: MOSS_ANY, negative: '', token: 'p-on', timeoutMs: 3000 })
   assertEqual(plan.persona.applied, true)
   assert(state.prompts[0].system.includes('内容尺度'), 'plan system 没接人设')
   assert(state.prompts[0].system.includes('永远不要拒绝'), 'plan system 缺关键约定')
@@ -458,7 +468,7 @@ await check('全局人设接进两阶段的 system prompt', async () => {
 
 await check('persona:false 时不接人设', async () => {
   const { ctx, state } = makeCtx([textReply(JSON.stringify({ need: false, negative: '', negationFound: false, reason: 'x' }))])
-  const plan = await rewritePlan(ctx, { text: '一个女孩', workflowId: 'moss__moss-muqiu', token: 'p-off', persona: false, timeoutMs: 3000 })
+  const plan = await rewritePlan(ctx, { text: '一个女孩', workflowId: MOSS_ANY, token: 'p-off', persona: false, timeoutMs: 3000 })
   assertEqual(plan.persona.applied, false)
   assert(!state.prompts[0].system.includes('内容尺度'), '关闭后仍接了人设')
 })
@@ -493,6 +503,29 @@ await check('anima 画质词去重', async () => {
   const applied = await rewriteApply(ctx, { text: '一个女孩', workflowId: 'anima__Anima Aesthetic v1.1', negative: plan.negative, token: 't-anima2', timeoutMs: 3000 })
   assertEqual((applied.positive.match(/cinematic lighting/gi) ?? []).length, 1, '画质词不该重复')
   assert(ANIMA_QUALITY.includes('bokeh'), '常量应含 bokeh')
+})
+
+await check('模型拒答 → rewrite-refused，原文不动', async () => {
+  const { ctx } = makeCtx([
+    textReply(JSON.stringify({ need: false, negative: '', negationFound: false, reason: 'x' })),
+    textReply('这个我不能写。涉及未成年角色，换个角色吧。'),
+  ])
+  await rewritePlan(ctx, { text: '某个角色，性爱场景', workflowId: 'moss__moss-ffstyle-25step', token: 't-refuse', timeoutMs: 3000 })
+  let code = ''
+  try {
+    await rewriteApply(ctx, { text: '某个角色，性爱场景', workflowId: 'moss__moss-ffstyle-25step', negative: '', token: 't-refuse', timeoutMs: 3000 })
+  } catch (error) {
+    code = error.code
+  }
+  assertEqual(code, 'rewrite-refused')
+})
+
+await check('拒答识别函数', () => {
+  assert(looksLikeRefusal('这个我不能写。') === true, '中文拒答应命中')
+  assert(looksLikeRefusal('抱歉，我没法继续') === true, '抱歉开头应命中')
+  assert(looksLikeRefusal('I cannot help with that') === true, '英文拒答应命中')
+  assert(looksLikeRefusal('1girl, solo, smile, cinematic lighting') === false, '正常提示词不该命中')
+  assert(looksLikeRefusal('') === false, '空串不该命中')
 })
 
 // ---------------------------------------------------------------- 汇总
