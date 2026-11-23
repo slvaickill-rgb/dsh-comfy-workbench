@@ -16,7 +16,7 @@
 ## 1. 装插件
 
 ```bash
-# 1) 目录整个拷到目标机器（11 份工作流已导入到 workflows/，随包走）
+# 1) 目录整个拷到目标机器（6 份工作流已导入到 workflows/，随包走；`format: local` 的手工条目重导时保留）
 # 2) 在插件根目录执行：
 node tools/install.mjs
 # 3) 重启 DSH —— 新 bundle 不作用于正在跑的进程

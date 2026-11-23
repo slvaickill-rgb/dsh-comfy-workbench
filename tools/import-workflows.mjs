@@ -329,7 +329,8 @@ function addSource(skill, file, graph, format) {
 }
 
 // 1) 已经是 API 版的：直接拷
-for (const skill of ['comfyui-anima', 'comfyui-wai']) {
+// comfyui-wai 的工作流 2026-11-24 已删，目录空着就不再扫（加回来只需把 'comfyui-wai' 放回数组）
+for (const skill of ['comfyui-anima']) {
   const dir = path.join(SKILLS, skill, 'workflows')
   const files = listFiles(dir, '.api.json')
   if (files.length === 0) warns.push(skill + '：没找到 *.api.json')
@@ -362,11 +363,21 @@ for (const skill of ['comfyui-moss']) {
   }
 }
 
+// 本地手工登记的工作流（format: 'local'，不由技能目录生成）在重导时原样保留，
+// 否则 index.json 被整个重写，手工加的条目就没了。
+let keepLocal = []
+try {
+  const old = JSON.parse(fs.readFileSync(path.join(OUT_DIR, 'index.json'), 'utf8'))
+  if (Array.isArray(old?.items)) {
+    keepLocal = old.items.filter((entry) => entry && entry.format === 'local' && !items.some((item) => item.id === entry.id))
+  }
+} catch {}
+
 const manifest = {
   version: 1,
   importedAt: new Date().toISOString(),
   skillsRoot: SKILLS,
-  items,
+  items: [...items, ...keepLocal],
   warnings: warns,
 }
 if (!DRY) {
