@@ -1,0 +1,23 @@
+{
+  "manifestVersion": "0.15",
+  "id": "dsh-comfy-workbench",
+  "name": "ComfyUI 工作台",
+  "summary": "侧栏进入的 ComfyUI 工作台：目录自动识别、大模型提示词接口、绑定 DSH 工作区的独立输入框、单张出图。",
+  "description": "加载与启停以 package.json 的 dsh.bundle.patch / dsh.client 为准；本文件只是社区元数据，0.2.2 核心不读取。",
+  "author": "local",
+  "license": "MIT",
+  "homepage": null,
+  "repository": null,
+  "tags": ["comfyui", "image", "workbench", "llm"],
+  "entry": {
+    "host": "./lib/index.js",
+    "client": "./lib/client.js",
+    "typert": "./lib/typert.host.js"
+  },
+  "panel": {
+    "slot": "main",
+    "key": "comfy",
+    "sidebar": "sidebar.panellist",
+    "order": 6
+  }
+}

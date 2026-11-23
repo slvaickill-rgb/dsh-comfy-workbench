@@ -1,0 +1,60 @@
+{
+  "name": "dsh-comfy-workbench",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "ComfyUI workbench panel for DeepSeek Harness: sidebar entry, model/LoRA directory probing, LLM prompt rewriting, workspace-bound text input, single-image generation.",
+  "icon": "./assets/icon.svg",
+  "license": "MIT",
+  "main": "./lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./typert": "./lib/typert.host.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./icon.svg": "./assets/icon.svg",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/**/*.js",
+    "workflows/**/*.json",
+    "assets/icon.svg",
+    "cordis.patch.yml",
+    "README.md",
+    "SETUP.md"
+  ],
+  "scripts": {
+    "import-workflows": "node tools/import-workflows.mjs",
+    "doctor": "node tools/doctor.mjs"
+  },
+  "engines": {
+    "dsh": ">=0.2.2-rc.1 <0.2.3-0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-typert-protocol": ">=0.1.1-rc.2 <0.3.0-0"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/cordis": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-typert-protocol": {
+      "optional": true
+    }
+  },
+  "dsh": {
+    "manifestVersion": 1,
+    "verifiedAgainst": "0.2.2-rc.5",
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true
+    }
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}

@@ -1,0 +1,252 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "moss_image_sft_int8_convrot.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "4": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": [
+        "42",
+        0
+      ],
+      "clip": [
+        "31",
+        0
+      ]
+    }
+  },
+  "5": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "worst quality, bad anatomy, watermark, jpeg artifact",
+      "clip": [
+        "31",
+        0
+      ]
+    }
+  },
+  "6": {
+    "class_type": "EmptyFlux2LatentImage",
+    "inputs": {
+      "width": 960,
+      "height": 1216,
+      "batch_size": 1
+    }
+  },
+  "13": {
+    "class_type": "SkipLayerGuidanceDiTSimple",
+    "inputs": {
+      "double_layers": "",
+      "single_layers": "22",
+      "start_percent": 0,
+      "end_percent": 1,
+      "model": [
+        "15",
+        0
+      ]
+    }
+  },
+  "15": {
+    "class_type": "ModelSamplingAuraFlow",
+    "inputs": {
+      "shift": 5,
+      "sampling": "flow",
+      "model": [
+        "1",
+        0
+      ]
+    }
+  },
+  "16": {
+    "class_type": "KSampler",
+    "inputs": {
+      "seed": 171866464512616,
+      "steps": [
+        "27",
+        0
+      ],
+      "cfg": [
+        "28",
+        0
+      ],
+      "sampler_name": "euler",
+      "scheduler": "sgm_uniform",
+      "denoise": 1,
+      "model": [
+        "22",
+        0
+      ],
+      "positive": [
+        "4",
+        0
+      ],
+      "negative": [
+        "5",
+        0
+      ],
+      "latent_image": [
+        "6",
+        0
+      ]
+    }
+  },
+  "17": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "16",
+        0
+      ],
+      "vae": [
+        "32",
+        0
+      ]
+    }
+  },
+  "18": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "filename_prefix": "MOSS-Image/SFT_8step_toggle",
+      "images": [
+        "17",
+        0
+      ]
+    }
+  },
+  "20": {
+    "class_type": "PrimitiveBoolean",
+    "inputs": {
+      "value": true
+    }
+  },
+  "21": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "lora_name": "moss_image_sft_4step_v2.0.safetensors",
+      "strength_model": 0.7,
+      "model": [
+        "15",
+        0
+      ]
+    }
+  },
+  "22": {
+    "class_type": "ComfySwitchNode",
+    "inputs": {
+      "switch": [
+        "20",
+        0
+      ],
+      "on_false": [
+        "13",
+        0
+      ],
+      "on_true": [
+        "21",
+        0
+      ]
+    }
+  },
+  "23": {
+    "class_type": "PrimitiveInt",
+    "inputs": {
+      "value": 50
+    }
+  },
+  "24": {
+    "class_type": "PrimitiveInt",
+    "inputs": {
+      "value": 8
+    }
+  },
+  "25": {
+    "class_type": "PrimitiveFloat",
+    "inputs": {
+      "value": 3
+    }
+  },
+  "26": {
+    "class_type": "PrimitiveFloat",
+    "inputs": {
+      "value": 1
+    }
+  },
+  "27": {
+    "class_type": "ComfySwitchNode",
+    "inputs": {
+      "switch": [
+        "20",
+        0
+      ],
+      "on_false": [
+        "23",
+        0
+      ],
+      "on_true": [
+        "24",
+        0
+      ]
+    }
+  },
+  "28": {
+    "class_type": "ComfySwitchNode",
+    "inputs": {
+      "switch": [
+        "20",
+        0
+      ],
+      "on_false": [
+        "25",
+        0
+      ],
+      "on_true": [
+        "26",
+        0
+      ]
+    }
+  },
+  "31": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen3.5_9b_moss_image_sft_w4a8_gptq.safetensors",
+      "type": "moss_image",
+      "device": "default"
+    }
+  },
+  "32": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "moss_image_vae_bf16.safetensors"
+    }
+  },
+  "40": {
+    "class_type": "PrimitiveStringMultiline",
+    "inputs": {
+      "value": "best quality, highres"
+    }
+  },
+  "41": {
+    "class_type": "PrimitiveStringMultiline",
+    "inputs": {
+      "value": "{\"summary\":{\"canvas\":\"multi_panel\",\"caption\":\"A full-color Japanese anime comedy manga with expressive clean linework, soft cel shading, warm afternoon light and playful facial acting. Exactly four rectangular panels in a two-by-two grid, read top-left, top-right, bottom-left, bottom-right, with white gutters and thin black borders. Aemeath (爱弥斯) and Denia (达妮娅) from Wuthering Waves argue affectionately over the last slice of strawberry cake at a cafe table. Aemeath has very long pink hair, amber eyes and her recognizable white futuristic outfit and hair ornaments. Denia has pale hair shading into pink and lavender with blue inner strands, blue eyes, her recognizable black-and-white outfit and red gloves. Keep their official hairstyles, accessories and outfit designs consistent. Aemeath stays on the left and Denia on the right in every panel. Each panel contains these two characters and two white speech balloons with black Chinese lettering, with tails clearly pointing to the correct speaker. The only lettering is the eight supplied dialogue lines.\"},\"items\":[{\"label\":\"object\",\"caption\":\"Top-left panel: an eye-level medium two-shot at a sunny cafe table. One untouched strawberry cake slice sits on a small white plate between the pair. Soft window light and a blurred cafe interior.\",\"bbox\":[-680,-680,-16,-16]},{\"label\":\"character\",\"caption\":\"Top-left panel, Aemeath on the left: smiling triumphantly, leaning toward the cake, holding her fork poised above it.\",\"bbox\":[-494,-656,-58,-364]},{\"label\":\"character\",\"caption\":\"Top-left panel, Denia on the right: one eyebrow raised, an amused sideways glance at Aemeath, calmly holding up three red-gloved fingers.\",\"bbox\":[-494,-344,-58,-40]},{\"label\":\"text\",\"caption\":\"Top-left panel, upper-left rounded speech balloon, tail to Aemeath on the left, large readable Chinese lettering.\",\"text\":\"最后一块，归我啦！\",\"bbox\":[-656,-656,-526,-350]},{\"label\":\"text\",\"caption\":\"Top-left panel, upper-right rounded speech balloon, tail to Denia on the right, large readable Chinese lettering.\",\"text\":\"你已经吃了三块。\",\"bbox\":[-640,-324,-510,-44]},{\"label\":\"object\",\"caption\":\"Top-right panel: a slightly closer two-shot across the same cafe table. The untouched cake remains between them. Warm rim light catches their hair.\",\"bbox\":[-680,16,-16,680]},{\"label\":\"character\",\"caption\":\"Top-right panel, Aemeath on the left: sitting proudly upright, free hand on her chest, sparkling eyes and an exaggerated heroic grin; her fork remains in her other hand.\",\"bbox\":[-484,40,-54,336]},{\"label\":\"character\",\"caption\":\"Top-right panel, Denia on the right: chin resting on one red-gloved hand, half-lidded eyes and a tiny teasing smile aimed at Aemeath.\",\"bbox\":[-484,356,-54,656]},{\"label\":\"text\",\"caption\":\"Top-right panel, upper-left speech balloon, tail to Aemeath, large readable Chinese lettering.\",\"text\":\"英雄需要补充能量！\",\"bbox\":[-656,40,-512,342]},{\"label\":\"text\",\"caption\":\"Top-right panel, upper-right speech balloon, tail to Denia, large readable Chinese lettering.\",\"text\":\"抢蛋糕也算拯救世界？\",\"bbox\":[-640,366,-496,656]},{\"label\":\"object\",\"caption\":\"Bottom-left panel: a low tabletop-angle two-shot emphasizing a second fork entering toward the last cake slice from Denia's side. Both faces remain visible above the plate. The sunny cafe background is continuous.\",\"bbox\":[16,-680,680,-16]},{\"label\":\"character\",\"caption\":\"Bottom-left panel, Aemeath on the left: pointing at Denia's approaching fork with her free hand, eyes widened in indignant surprise, mouth open mid-retort.\",\"bbox\":[220,-656,640,-364]},{\"label\":\"character\",\"caption\":\"Bottom-left panel, Denia on the right: extending her fork toward the cake with a red-gloved hand, maintaining a serenely innocent smile and looking at Aemeath.\",\"bbox\":[220,-344,640,-40]},{\"label\":\"text\",\"caption\":\"Bottom-left panel, upper-left speech balloon, tail to Aemeath, large readable Chinese lettering.\",\"text\":\"那你为什么拿叉子？\",\"bbox\":[40,-656,184,-350]},{\"label\":\"text\",\"caption\":\"Bottom-left panel, upper-right speech balloon, tail to Denia, large readable Chinese lettering.\",\"text\":\"我这是替你分担。\",\"bbox\":[56,-324,200,-44]},{\"label\":\"object\",\"caption\":\"Bottom-right panel: comic punchline, tight two-shot with simplified warm cafe colors. Both forks have pierced opposite edges of the same remaining cake slice, stretching its cream slightly as the two girls pull gently in opposite directions. The plate stays on the table. Small drawn tension marks emphasize the harmless standoff.\",\"bbox\":[16,16,680,680]},{\"label\":\"character\",\"caption\":\"Bottom-right panel, Aemeath on the left: puffed cheeks, furrowed brows and a competitive pout, leaning forward and gripping her fork while staring at Denia.\",\"bbox\":[230,40,644,336]},{\"label\":\"character\",\"caption\":\"Bottom-right panel, Denia on the right: a smug closed-mouth smile, narrowed playful eyes, red-gloved hand firmly gripping her fork, looking directly at Aemeath.\",\"bbox\":[230,356,644,656]},{\"label\":\"text\",\"caption\":\"Bottom-right panel, upper-left jagged speech balloon, tail to Aemeath, bold readable Chinese lettering.\",\"text\":\"你倒是松手啊！\",\"bbox\":[40,40,184,342]},{\"label\":\"text\",\"caption\":\"Bottom-right panel, upper-right small rounded speech balloon, tail to Denia, large readable Chinese lettering.\",\"text\":\"你先。\",\"bbox\":[76,416,196,616]}],\"bbox_coord_space\":\"abs_centralized\",\"bbox_format\":\"yxyx\"}\n"
+    }
+  },
+  "42": {
+    "class_type": "StringConcatenate",
+    "inputs": {
+      "string_a": [
+        "40",
+        0
+      ],
+      "string_b": [
+        "41",
+        0
+      ],
+      "delimiter": ", "
+    }
+  }
+}

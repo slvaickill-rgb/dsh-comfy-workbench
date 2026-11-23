@@ -1,0 +1,119 @@
+{
+  "1": {
+    "class_type": "UnetLoaderGGUF",
+    "inputs": {
+      "unet_name": "waiIllustriousSDXL_v170-Q4_K_M.gguf"
+    },
+    "_meta": {
+      "title": "底模 WAI-illustrious-SDXL v17 (Q4_K_M)"
+    }
+  },
+  "2": {
+    "class_type": "DualCLIPLoader",
+    "inputs": {
+      "clip_name1": "waiIllustriousSDXL_clip_l.safetensors",
+      "clip_name2": "waiIllustriousSDXL_clip_g.safetensors",
+      "type": "sdxl",
+      "device": "default"
+    },
+    "_meta": {
+      "title": "SDXL 文本编码器（clip_l + clip_g）"
+    }
+  },
+  "3": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "waiIllustriousSDXL_v170_VAE.safetensors"
+    },
+    "_meta": {
+      "title": "SDXL VAE（GGUF 底模没有内嵌 VAE，必须另挂）"
+    }
+  },
+  "4": {
+    "class_type": "EmptyLatentImage",
+    "inputs": {
+      "width": 832,
+      "height": 1216,
+      "batch_size": 1
+    }
+  },
+  "5": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "masterpiece, best quality, very aesthetic",
+      "clip": [
+        "2",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "正向（脚本会整段覆盖）"
+    }
+  },
+  "6": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "worst quality, low quality, blurry, jpeg artifacts, watermark, signature, text",
+      "clip": [
+        "2",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "负向（脚本会在前面追加兜底词）"
+    }
+  },
+  "8": {
+    "class_type": "KSampler",
+    "inputs": {
+      "seed": 0,
+      "steps": 28,
+      "cfg": 5,
+      "sampler_name": "euler_ancestral",
+      "scheduler": "normal",
+      "denoise": 1,
+      "model": [
+        "1",
+        0
+      ],
+      "positive": [
+        "5",
+        0
+      ],
+      "negative": [
+        "6",
+        0
+      ],
+      "latent_image": [
+        "4",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "作者推荐：Euler a / 15–30 步 / cfg 5–7"
+    }
+  },
+  "9": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "8",
+        0
+      ],
+      "vae": [
+        "3",
+        0
+      ]
+    }
+  },
+  "10": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "9",
+        0
+      ],
+      "filename_prefix": "wai/WAI"
+    }
+  }
+}

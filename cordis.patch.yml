@@ -1,0 +1,5 @@
+# dsh-comfy-workbench 的 bundle patch：一行，宿主半的 ComfyGateway。
+# 客户端半由 package.json 的 dsh.client 声明，不需要在 patch 里出现。
+- insert:
+    - id: comfy-workbench
+      name: 'dsh-comfy-workbench'

@@ -1,0 +1,419 @@
+{
+  "version": 1,
+  "importedAt": "2026-11-22T06:16:46.901Z",
+  "skillsRoot": "C:\\Users\\Slvai\\.workbuddy\\skills",
+  "items": [
+    {
+      "id": "anima__Anima Aesthetic v1.1",
+      "file": "anima__Anima Aesthetic v1.1.api.json",
+      "title": "Anima Aesthetic v1.1",
+      "skill": "comfyui-anima",
+      "format": "api",
+      "source": "C:\\Users\\Slvai\\.workbuddy\\skills\\comfyui-anima\\workflows\\Anima Aesthetic v1.1.api.json",
+      "summary": {
+        "loader": "unet",
+        "unet": [
+          "anima_aestheticV11.safetensors"
+        ],
+        "checkpoints": [],
+        "vae": [
+          "qwen_image_vae.safetensors"
+        ],
+        "clip": [
+          "qwen_3_06b_base.safetensors"
+        ],
+        "loras": [
+          {
+            "name": "deep_penetration_anima_v1.safetensors",
+            "strength": 0.8
+          },
+          {
+            "name": "real-disgust-anima.safetensors",
+            "strength": 0.8
+          }
+        ],
+        "samplers": 2,
+        "steps": 16,
+        "cfg": 1,
+        "denoise": 1,
+        "width": 768,
+        "height": 1024,
+        "savePrefix": "Anima_hq",
+        "nodes": 14
+      }
+    },
+    {
+      "id": "wai__WAI Illustrious SDXL",
+      "file": "wai__WAI Illustrious SDXL.api.json",
+      "title": "WAI Illustrious SDXL",
+      "skill": "comfyui-wai",
+      "format": "api",
+      "source": "C:\\Users\\Slvai\\.workbuddy\\skills\\comfyui-wai\\workflows\\WAI Illustrious SDXL.api.json",
+      "summary": {
+        "loader": "unet",
+        "unet": [
+          "waiIllustriousSDXL_v170-Q4_K_M.gguf"
+        ],
+        "checkpoints": [],
+        "vae": [
+          "waiIllustriousSDXL_v170_VAE.safetensors"
+        ],
+        "clip": [
+          "waiIllustriousSDXL_clip_l.safetensors",
+          "waiIllustriousSDXL_clip_g.safetensors"
+        ],
+        "loras": [],
+        "samplers": 1,
+        "steps": 28,
+        "cfg": 5,
+        "denoise": 1,
+        "width": 832,
+        "height": 1216,
+        "savePrefix": "wai/WAI",
+        "nodes": 9
+      }
+    },
+    {
+      "id": "moss__moss-4step",
+      "file": "moss__moss-4step.api.json",
+      "title": "四步 · 4 步蒸馏档（默认，30 秒）",
+      "skill": "comfyui-moss",
+      "format": "ui→api",
+      "source": "C:\\Users\\Slvai\\.workbuddy\\skills\\comfyui-moss\\workflows\\moss-4step.ui.json",
+      "summary": {
+        "loader": "unet",
+        "unet": [
+          "moss_image_sft_int8_convrot.safetensors"
+        ],
+        "checkpoints": [],
+        "vae": [
+          "moss_image_vae_bf16.safetensors"
+        ],
+        "clip": [
+          "qwen3.5_9b_moss_image_sft_w4a8_gptq.safetensors"
+        ],
+        "loras": [
+          {
+            "name": "moss_image_sft_4step_v2.0.safetensors",
+            "strength": 1
+          }
+        ],
+        "samplers": 1,
+        "steps": 4,
+        "cfg": 1,
+        "denoise": 1,
+        "width": 1024,
+        "height": 1024,
+        "savePrefix": "moss-4step",
+        "nodes": 10
+      }
+    },
+    {
+      "id": "moss__moss-anime-switch",
+      "file": "moss__moss-anime-switch.api.json",
+      "title": "开关 · 一键切 8 步加速 / 50 步画质",
+      "skill": "comfyui-moss",
+      "format": "ui→api",
+      "source": "C:\\Users\\Slvai\\.workbuddy\\skills\\comfyui-moss\\workflows\\moss-anime-switch.ui.json",
+      "summary": {
+        "loader": "unet",
+        "unet": [
+          "moss_image_sft_int8_convrot.safetensors"
+        ],
+        "checkpoints": [],
+        "vae": [
+          "moss_image_vae_bf16.safetensors"
+        ],
+        "clip": [
+          "qwen3.5_9b_moss_image_sft_w4a8_gptq.safetensors"
+        ],
+        "loras": [
+          {
+            "name": "moss_image_sft_4step_v2.0.safetensors",
+            "strength": 0.7
+          }
+        ],
+        "samplers": 1,
+        "steps": [
+          "27",
+          0
+        ],
+        "cfg": [
+          "28",
+          0
+        ],
+        "denoise": 1,
+        "width": 960,
+        "height": 1216,
+        "savePrefix": "MOSS-Image/SFT_8step_toggle",
+        "nodes": 23
+      }
+    },
+    {
+      "id": "moss__moss-anireal",
+      "file": "moss__moss-anireal.api.json",
+      "title": "写实 · Anireal 2.5D",
+      "skill": "comfyui-moss",
+      "format": "ui→api",
+      "source": "C:\\Users\\Slvai\\.workbuddy\\skills\\comfyui-moss\\workflows\\moss-anireal.ui.json",
+      "summary": {
+        "loader": "unet",
+        "unet": [
+          "moss_image_sft_int8_convrot.safetensors"
+        ],
+        "checkpoints": [],
+        "vae": [
+          "moss_image_vae_bf16.safetensors"
+        ],
+        "clip": [
+          "qwen3.5_9b_moss_image_sft_w4a8_gptq.safetensors"
+        ],
+        "loras": [
+          {
+            "name": "moss_image_sft_4step_v2.0.safetensors",
+            "strength": 1
+          },
+          {
+            "name": "anireal_moss_lora_v1.safetensors",
+            "strength": 1
+          }
+        ],
+        "samplers": 1,
+        "steps": 4,
+        "cfg": 1,
+        "denoise": 1,
+        "width": 1024,
+        "height": 1024,
+        "savePrefix": "moss-4step",
+        "nodes": 11
+      }
+    },
+    {
+      "id": "moss__moss-betternude-8step",
+      "file": "moss__moss-betternude-8step.api.json",
+      "title": "八步 · 8 步 DMD 高细节",
+      "skill": "comfyui-moss",
+      "format": "ui→api",
+      "source": "C:\\Users\\Slvai\\.workbuddy\\skills\\comfyui-moss\\workflows\\moss-betternude-8step.ui.json",
+      "summary": {
+        "loader": "unet",
+        "unet": [
+          "moss_image_sft_int8_convrot.safetensors"
+        ],
+        "checkpoints": [],
+        "vae": [
+          "moss_image_vae_bf16.safetensors"
+        ],
+        "clip": [
+          "qwen3.5_9b_moss_image_sft_w4a8_gptq.safetensors"
+        ],
+        "loras": [
+          {
+            "name": "moss_pussy_lora_v2.0_8steps.safetensors",
+            "strength": 1
+          }
+        ],
+        "samplers": 1,
+        "steps": 8,
+        "cfg": 1,
+        "denoise": 1,
+        "width": 832,
+        "height": 1216,
+        "savePrefix": "moss-4step",
+        "nodes": 10
+      }
+    },
+    {
+      "id": "moss__moss-betternude",
+      "file": "moss__moss-betternude.api.json",
+      "title": "八步 · 完整版（UI 里默认参数）",
+      "skill": "comfyui-moss",
+      "format": "ui→api",
+      "source": "C:\\Users\\Slvai\\.workbuddy\\skills\\comfyui-moss\\workflows\\moss-betternude.ui.json",
+      "summary": {
+        "loader": "unet",
+        "unet": [
+          "moss_image_sft_int8_convrot.safetensors"
+        ],
+        "checkpoints": [],
+        "vae": [
+          "moss_image_vae_bf16.safetensors"
+        ],
+        "clip": [
+          "qwen3.5_9b_moss_image_sft_w4a8_gptq.safetensors"
+        ],
+        "loras": [
+          {
+            "name": "moss_pussy_lora_v2.0_face_pussy.safetensors",
+            "strength": 1
+          }
+        ],
+        "samplers": 1,
+        "steps": 25,
+        "cfg": 4,
+        "denoise": 1,
+        "width": 832,
+        "height": 1216,
+        "savePrefix": "moss-4step",
+        "nodes": 10
+      }
+    },
+    {
+      "id": "moss__moss-ffstyle-25step",
+      "file": "moss__moss-ffstyle-25step.api.json",
+      "title": "nai5 · FFstyle 12 步 / CFG 4",
+      "skill": "comfyui-moss",
+      "format": "ui→api",
+      "source": "C:\\Users\\Slvai\\.workbuddy\\skills\\comfyui-moss\\workflows\\moss-ffstyle-25step.ui.json",
+      "summary": {
+        "loader": "unet",
+        "unet": [
+          "moss_image_sft_int8_convrot.safetensors"
+        ],
+        "checkpoints": [],
+        "vae": [
+          "moss_image_vae_bf16.safetensors"
+        ],
+        "clip": [
+          "qwen3.5_9b_moss_image_sft_w4a8_gptq.safetensors"
+        ],
+        "loras": [
+          {
+            "name": "ffstyle_moss_heal.safetensors",
+            "strength": 0.7
+          },
+          {
+            "name": "anireal_moss_lora_v1.safetensors",
+            "strength": 1
+          }
+        ],
+        "samplers": 1,
+        "steps": 12,
+        "cfg": 4,
+        "denoise": 1,
+        "width": 1024,
+        "height": 1024,
+        "savePrefix": "2026-11/ffstyle25",
+        "nodes": 11
+      }
+    },
+    {
+      "id": "moss__moss-ffstyle",
+      "file": "moss__moss-ffstyle.api.json",
+      "title": "nai5快 · FFstyle 四步加速档",
+      "skill": "comfyui-moss",
+      "format": "ui→api",
+      "source": "C:\\Users\\Slvai\\.workbuddy\\skills\\comfyui-moss\\workflows\\moss-ffstyle.ui.json",
+      "summary": {
+        "loader": "unet",
+        "unet": [
+          "moss_image_sft_int8_convrot.safetensors"
+        ],
+        "checkpoints": [],
+        "vae": [
+          "moss_image_vae_bf16.safetensors"
+        ],
+        "clip": [
+          "qwen3.5_9b_moss_image_sft_w4a8_gptq.safetensors"
+        ],
+        "loras": [
+          {
+            "name": "moss_image_sft_4step_v2.0.safetensors",
+            "strength": 1
+          },
+          {
+            "name": "ffstyle_moss_heal.safetensors",
+            "strength": 1
+          }
+        ],
+        "samplers": 1,
+        "steps": 4,
+        "cfg": 1,
+        "denoise": 1,
+        "width": 1024,
+        "height": 1024,
+        "savePrefix": "2026-11/ffstyle",
+        "nodes": 11
+      }
+    },
+    {
+      "id": "moss__moss-muqiu",
+      "file": "moss__moss-muqiu.api.json",
+      "title": "木秋 · 固定角色（自动补 muqiu）",
+      "skill": "comfyui-moss",
+      "format": "ui→api",
+      "source": "C:\\Users\\Slvai\\.workbuddy\\skills\\comfyui-moss\\workflows\\moss-muqiu.ui.json",
+      "summary": {
+        "loader": "unet",
+        "unet": [
+          "moss_image_sft_int8_convrot.safetensors"
+        ],
+        "checkpoints": [],
+        "vae": [
+          "moss_image_vae_bf16.safetensors"
+        ],
+        "clip": [
+          "qwen3.5_9b_moss_image_sft_w4a8_gptq.safetensors"
+        ],
+        "loras": [
+          {
+            "name": "moss_image_sft_4step_v2.0.safetensors",
+            "strength": 1
+          },
+          {
+            "name": "muqiu_moss.safetensors",
+            "strength": 1
+          }
+        ],
+        "samplers": 1,
+        "steps": 4,
+        "cfg": 1,
+        "denoise": 1,
+        "width": 1024,
+        "height": 1024,
+        "savePrefix": "moss-4step",
+        "nodes": 11
+      }
+    },
+    {
+      "id": "moss__moss-skalip",
+      "file": "moss__moss-skalip.api.json",
+      "title": "塞卡 · SekaLip 平涂赛璐璐",
+      "skill": "comfyui-moss",
+      "format": "ui→api",
+      "source": "C:\\Users\\Slvai\\.workbuddy\\skills\\comfyui-moss\\workflows\\moss-skalip.ui.json",
+      "summary": {
+        "loader": "unet",
+        "unet": [
+          "moss_image_sft_int8_convrot.safetensors"
+        ],
+        "checkpoints": [],
+        "vae": [
+          "moss_image_vae_bf16.safetensors"
+        ],
+        "clip": [
+          "qwen3.5_9b_moss_image_sft_w4a8_gptq.safetensors"
+        ],
+        "loras": [
+          {
+            "name": "moss_image_sft_4step_v2.0.safetensors",
+            "strength": 1
+          },
+          {
+            "name": "skp_mossv2.safetensors",
+            "strength": 1
+          }
+        ],
+        "samplers": 1,
+        "steps": 4,
+        "cfg": 1,
+        "denoise": 1,
+        "width": 1024,
+        "height": 1024,
+        "savePrefix": "moss-4step",
+        "nodes": 11
+      }
+    }
+  ],
+  "warnings": []
+}
