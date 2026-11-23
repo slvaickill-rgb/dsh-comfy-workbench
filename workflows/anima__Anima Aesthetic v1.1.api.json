@@ -41,7 +41,7 @@
   "6": {
     "class_type": "CLIPTextEncode",
     "inputs": {
-      "text": "",
+      "text": "extra limbs, extra fingers, bad anatomy",
       "clip": [
         "2",
         0
@@ -53,8 +53,8 @@
     "inputs": {
       "seed": 888888,
       "steps": 16,
-      "cfg": 1,
-      "sampler_name": "er_sde",
+      "cfg": 4,
+      "sampler_name": "dpmpp_2m",
       "scheduler": "sgm_uniform",
       "denoise": 1,
       "model": [
@@ -92,7 +92,7 @@
     "class_type": "SaveImage",
     "inputs": {
       "images": [
-        "19",
+        "9",
         0
       ],
       "filename_prefix": "Anima_hq"
@@ -126,66 +126,6 @@
     "_meta": {
       "title": "LoRA 真实嫌弃表情（Real Disgust）@0.8",
       "keep": true
-    }
-  },
-  "17": {
-    "class_type": "LatentUpscaleBy",
-    "inputs": {
-      "samples": [
-        "8",
-        0
-      ],
-      "upscale_method": "bislerp",
-      "scale_by": 1.5
-    },
-    "_meta": {
-      "title": "二段放大 1.5x（hires fix）"
-    }
-  },
-  "18": {
-    "class_type": "KSampler",
-    "inputs": {
-      "seed": 888888,
-      "steps": 16,
-      "cfg": 1,
-      "sampler_name": "er_sde",
-      "scheduler": "sgm_uniform",
-      "denoise": 0.4,
-      "model": [
-        "13",
-        0
-      ],
-      "positive": [
-        "5",
-        0
-      ],
-      "negative": [
-        "6",
-        0
-      ],
-      "latent_image": [
-        "17",
-        0
-      ]
-    },
-    "_meta": {
-      "title": "二段重采样（denoise 0.4）"
-    }
-  },
-  "19": {
-    "class_type": "VAEDecode",
-    "inputs": {
-      "samples": [
-        "18",
-        0
-      ],
-      "vae": [
-        "3",
-        0
-      ]
-    },
-    "_meta": {
-      "title": "VAE 解码（放大后）"
     }
   }
 }

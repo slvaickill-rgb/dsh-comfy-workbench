@@ -374,6 +374,20 @@ ComfyUI 的 `samplers.py` 在 `cond_scale == 1` 时把 `uncond_` 置空，`cfg_r
   这时写进上游 `PrimitiveStringMultiline`，拼接与开关保持原样（`notes` 会说明写到哪）。`steps` / `cfg` / `seed` 只覆盖写死的数字，
   是连线的（如开关版的 8 步/50 步切换）一律不碰，只回一句「未覆盖」。
 
+### anima 工作流的采样补丁（2026-11-23）
+
+comfyui-anima skill 正文写的是 **style 档**：16 步 / cfg 4 / `dpmpp_2m` + `sgm_uniform`、单段不放大；
+但技能目录里那份 `Anima Aesthetic v1.1.api.json` 还是旧的 hires 两段（cfg 1 / `er_sde` / 1.5× 二段重采样）。
+工作台导入时按 skill 正文对齐，规则写在 `tools/import-workflows.mjs` 的 `patchAnimaStyle()`：
+
+- 所有 KSampler → 16 步 / cfg 4 / `dpmpp_2m` / `sgm_uniform`；
+- 摘掉 `LatentUpscaleBy → KSampler → VAEDecode` 二段链，`SaveImage` 改接第一段解码；
+- 负面文本节点空着就填 `extra limbs, extra fingers, bad anatomy`（cfg 4 下才生效）。
+
+只改导入副本，技能目录源文件一个字节不动；`index.json` 的 `summary.localPatch` 会记下这次补了什么。
+改写口径也分开了：anima 用 `APPLY_ANIMA`（角色身份最前 → 尺度词 → 场景/动作 → 服装 → 画质词），
+正向结果自动补 skill 的固定画质词并去重，cfg>1 时即使原文没写否定也会补结构类负面词。
+
 ### 角色外貌锚定（`lib/characters.js`）
 
 comfyui-moss 的硬规矩搬进了插件：MOSS 没有角色库，提示词里只写「樋口円香」四个字等于没写，

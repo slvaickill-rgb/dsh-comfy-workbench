@@ -9,7 +9,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
-import { decideNeed, mergeNegative, parsePlanJson, parsePositive, rewriteApply, rewriteCancel, rewritePlan } from '../lib/rewrite.js'
+import { ANIMA_NEGATIVE, ANIMA_QUALITY, decideNeed, mergeNegative, parsePlanJson, parsePositive, rewriteApply, rewriteCancel, rewritePlan } from '../lib/rewrite.js'
 import { extractContentScale, readGlobalPersona } from '../lib/persona.js'
 import { policyFor } from '../lib/workflowPolicy.js'
 import { readManifest } from '../lib/workflows.js'
@@ -95,14 +95,14 @@ await check('11 份工作流全部读到', () => {
   assert(matrix.every((policy) => policy.hasNegativeSlot === true), '有工作流找不到负向文本节点')
 })
 
-await check('cfg=1 的 7 份判为负面不生效', () => {
-  assertEqual(off.length, 7, '不生效数量：' + off.join('、'))
+await check('cfg=1 的 6 份判为负面不生效', () => {
+  assertEqual(off.length, 6, '不生效数量：' + off.join('、'))
   assert(off.includes('moss__moss-muqiu'), '木玖 应在不生效里')
-  assert(off.includes('anima__Anima Aesthetic v1.1'), 'anima 应在不生效里')
 })
 
-await check('cfg>1 的 3 份 + 连线 1 份判为生效', () => {
-  assertEqual(on.length, 4, '生效数量：' + on.join('、'))
+await check('cfg>1 的 4 份 + 连线 1 份判为生效', () => {
+  assertEqual(on.length, 5, '生效数量：' + on.join('、'))
+  assert(on.includes('anima__Anima Aesthetic v1.1'), 'anima 应生效（style 档 cfg 4）')
   assert(on.includes('wai__WAI Illustrious SDXL'), 'wai 应生效')
   assert(on.includes('moss__moss-betternude'), 'betternude 应生效')
   assert(on.includes('moss__moss-ffstyle-25step'), 'ffstyle-25step 应生效')
@@ -114,9 +114,9 @@ await check('anime-switch 的 cfg 是连线', () => {
   assertEqual(linked[0], 'moss__moss-anime-switch')
 })
 
-await check('4 份自带负面词不为空', () => {
+await check('5 份自带负面词不为空', () => {
   const withDefault = matrix.filter((policy) => policy.negativeDefault.trim().length > 0).map((policy) => policy.workflowId)
-  assertEqual(withDefault.length, 4, '自带负面词：' + withDefault.join('、'))
+  assertEqual(withDefault.length, 5, '自带负面词：' + withDefault.join('、'))
 })
 
 await check('style 口径映射', () => {
@@ -461,6 +461,38 @@ await check('persona:false 时不接人设', async () => {
   const plan = await rewritePlan(ctx, { text: '一个女孩', workflowId: 'moss__moss-muqiu', token: 'p-off', persona: false, timeoutMs: 3000 })
   assertEqual(plan.persona.applied, false)
   assert(!state.prompts[0].system.includes('内容尺度'), '关闭后仍接了人设')
+})
+
+await check('anima 工作流：style/cfg/负面生效', async () => {
+  const policy = policyFor('anima__Anima Aesthetic v1.1')
+  assertEqual(policy.style, 'anima')
+  assertEqual(policy.cfg, 4)
+  assertEqual(policy.negativeEffective, true)
+})
+
+await check('anima 空负面 → 补结构词并按 anatomy 放行', async () => {
+  const { ctx, state } = makeCtx([
+    textReply(JSON.stringify({ need: false, negative: '', negationFound: false, reason: '没有否定' })),
+    textReply('Tohsaka Rin, standing, black thighhighs'),
+  ])
+  const plan = await rewritePlan(ctx, { text: '远坂凛站着', workflowId: 'anima__Anima Aesthetic v1.1', token: 't-anima', timeoutMs: 3000, negativeCurrent: '' })
+  assertEqual(plan.need, true)
+  assertEqual(plan.negative, ANIMA_NEGATIVE)
+  const applied = await rewriteApply(ctx, { text: '远坂凛站着', workflowId: 'anima__Anima Aesthetic v1.1', negative: plan.negative, token: 't-anima', timeoutMs: 3000 })
+  assert(applied.positive.includes('cinematic lighting'), '应补画质词：' + applied.positive)
+  assert(applied.positive.includes('detailed anime illustration'), '应补完整画质词')
+  assert(state.prompts[1].system.includes('角色身份最前'), 'anima 口径要角色身份最前')
+})
+
+await check('anima 画质词去重', async () => {
+  const { ctx } = makeCtx([
+    textReply(JSON.stringify({ need: false, negative: '', negationFound: false, reason: 'x' })),
+    textReply('1girl, cinematic lighting, photo background'),
+  ])
+  const plan = await rewritePlan(ctx, { text: '一个女孩', workflowId: 'anima__Anima Aesthetic v1.1', token: 't-anima2', timeoutMs: 3000 })
+  const applied = await rewriteApply(ctx, { text: '一个女孩', workflowId: 'anima__Anima Aesthetic v1.1', negative: plan.negative, token: 't-anima2', timeoutMs: 3000 })
+  assertEqual((applied.positive.match(/cinematic lighting/gi) ?? []).length, 1, '画质词不该重复')
+  assert(ANIMA_QUALITY.includes('bokeh'), '常量应含 bokeh')
 })
 
 // ---------------------------------------------------------------- 汇总

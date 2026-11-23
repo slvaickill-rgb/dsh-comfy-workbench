@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "importedAt": "2026-11-23T11:22:47.751Z",
+  "importedAt": "2026-11-23T12:42:16.550Z",
   "skillsRoot": "C:\\Users\\Slvai\\.workbuddy\\skills",
   "items": [
     {
@@ -32,17 +32,21 @@
             "strength": 0.8
           }
         ],
-        "samplers": 2,
+        "samplers": 1,
         "steps": 16,
-        "cfg": 1,
+        "cfg": 4,
         "cfgLinked": false,
         "negativeNode": "6",
-        "negativeDefault": "",
+        "negativeDefault": "extra limbs, extra fingers, bad anatomy",
         "denoise": 1,
         "width": 768,
         "height": 1024,
         "savePrefix": "Anima_hq",
-        "nodes": 14
+        "nodes": 11,
+        "localPatch": [
+          "anima：改单段 style 档（去掉 hires 二段）",
+          "anima：负面填结构词"
+        ]
       }
     },
     {

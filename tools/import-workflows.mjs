@@ -238,6 +238,56 @@ function summarize(graph) {
   }
 }
 
+/**
+ * 本地采样补丁：技能目录里的 anima 工作流文件还是旧的 hires 两段（cfg 1 / er_sde），
+ * 与 comfyui-anima skill 正文的 style 档（16 步 / cfg 4 / dpmpp_2m + sgm_uniform，单段不放大）不一致。
+ * 只改导入副本，源文件一个字节不动；口径要改就改这里。
+ */
+const ANIMA_NEGATIVE_DEFAULT = 'extra limbs, extra fingers, bad anatomy'
+
+function patchAnimaStyle(graph) {
+  const notes = []
+  const samplers = Object.keys(graph).filter((id) => graph[id]?.class_type === 'KSampler')
+  for (const id of samplers) {
+    const inputs = graph[id]?.inputs
+    if (!inputs || typeof inputs !== 'object') continue
+    inputs.steps = 16
+    inputs.cfg = 4
+    inputs.sampler_name = 'dpmpp_2m'
+    inputs.scheduler = 'sgm_uniform'
+  }
+  // 去掉二段放大：SaveImage 改接第一段解码，删掉 upscale → sampler → decode 三件套
+  for (const [id, node] of Object.entries(graph)) {
+    if (node?.class_type !== 'SaveImage') continue
+    const decodeId = Array.isArray(node.inputs?.images) ? node.inputs.images[0] : null
+    const decode = decodeId !== null ? graph[decodeId] : null
+    const secondSamplerId = decode && Array.isArray(decode.inputs?.samples) ? decode.inputs.samples[0] : null
+    const secondSampler = secondSamplerId !== null ? graph[secondSamplerId] : null
+    const upscaleId = secondSampler && Array.isArray(secondSampler.inputs?.latent_image) ? secondSampler.inputs.latent_image[0] : null
+    if (upscaleId === null || graph[upscaleId]?.class_type !== 'LatentUpscaleBy') continue
+    const firstSamplerId = Array.isArray(graph[upscaleId].inputs?.samples) ? graph[upscaleId].inputs.samples[0] : null
+    const firstDecodeId = Object.keys(graph).find((key) => graph[key]?.class_type === 'VAEDecode'
+      && Array.isArray(graph[key].inputs?.samples) && graph[key].inputs.samples[0] === firstSamplerId)
+    if (typeof firstDecodeId !== 'string') { notes.push('anima：找不到第一段解码，保留二段放大'); continue }
+    node.inputs.images = [firstDecodeId, 0]
+    delete graph[upscaleId]
+    delete graph[secondSamplerId]
+    delete graph[decodeId]
+    notes.push('anima：改单段 style 档（去掉 hires 二段）')
+  }
+  // 负面空着就填结构词（cfg 4 下才有效）
+  for (const node of Object.values(graph)) {
+    if (node?.class_type !== 'KSampler') continue
+    const negId = Array.isArray(node.inputs?.negative) ? node.inputs.negative[0] : null
+    const neg = negId !== null ? graph[negId] : null
+    if (neg && neg.class_type === 'CLIPTextEncode' && typeof neg.inputs?.text === 'string' && neg.inputs.text.trim().length === 0) {
+      neg.inputs.text = ANIMA_NEGATIVE_DEFAULT
+      notes.push('anima：负面填结构词')
+    }
+  }
+  return notes
+}
+
 function listFiles(dir, suffix) {
   try {
     return fs.readdirSync(dir, { withFileTypes: true })
@@ -258,8 +308,10 @@ function addSource(skill, file, graph, format) {
   const fileName = id + '.api.json'
   const title = MOSS_TITLES[base] ?? base
   const stripped = stripLoras(graph, LOCAL_STRIP_LORAS[base] ?? [])
+  const patched = base === 'Anima Aesthetic v1.1' ? patchAnimaStyle(graph) : []
   const summary = summarize(graph)
   if (stripped.length > 0) summary.strippedLoras = stripped
+  if (patched.length > 0) summary.localPatch = patched
   items.push({
     id,
     file: fileName,
