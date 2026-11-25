@@ -160,6 +160,17 @@ check('思考卡显示判定依据与思考摘要', () => {
   }
 })
 
+check('LoRA 多选器：勾选顺序写进槽位', () => {
+  const css = cssBlock()
+  for (const token of ['cw-chip-btn', 'cw-lora-list', 'cw-lora-item', 'cw-lora-idx', 'cw-lora-name', 'cw-lora-str', 'cw-lora-foot']) {
+    assert(css.includes('.' + token), 'CSS 缺 .' + token)
+  }
+  assert(source.includes('const [loraSel, setLoraSel] = useState([])'), '没有 LoRA 选择状态')
+  assert(source.includes('const toggleLora ='), '没有勾选处理')
+  assert(source.includes('loras: loraSel.map((item) => ({ name: item.name, strength: item.strength }))'), '出图没把勾选传给宿主')
+  assert(source.includes('setLoraSel([])'), '换工作流没清空勾选')
+})
+
 console.log('')
 if (failures > 0) {
   console.log('有 ' + failures + ' 项没通过')

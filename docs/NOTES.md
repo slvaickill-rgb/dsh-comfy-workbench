@@ -521,3 +521,12 @@ node -e "import('file:///C:/DSH/Projects/dsh-comfy-workbench/lib/dirs.js').then(
 | 12 | 预览帧让 4 GB 显存多一次 latent→RGB | `latent2rgb` 是矩阵乘不是 VAE 解码；默认开，卡片里可关（下一个任务生效） |
 | 13 | 复制图片依赖 `navigator.clipboard` / `ClipboardItem` | 两级降级：先退复制图片地址，再退复制日志；不改宿主 CSP |
 | 14 | 皮肤把 `--dsw-alias-brand-primary` 解析成白色 | 主按钮与选中分类**不拿品牌色打底**：主按钮用 `label-primary` / `bg-layer-1` 反色，选中的分类用悬停底色 + 品牌色描边。`node tools/theme-check.mjs --shoot` 可放大看样张 |
+## LoRA 多选器（2026-11-25）
+
+- 步数旁边原来那枚 `N LoRA 可用` 死徽标改成开关：点开在环境卡里铺一张多选表，列出 `models/loras` 里的全部文件；勾选顺序＝写入 `LoraLoader` 槽的顺序，每个勾上的条带一个强度输入。
+- 新勾的强度抄它要占的那个槽原值（anima 0.8 / moss 四步 1）；勾超过槽位时页脚报「多出的不会写入」。
+- 空数组照旧不动工作流固化的 LoRA；**换工作流清空勾选**——anima 两槽、moss 一槽，留着会顶掉新工作流自带的。
+- 顶掉默认槽时页脚点名「替掉 X」，并提示蒸馏加速 LoRA（moss 四步那份）也占这类槽，换掉加速档就失效。
+- 传参走已有通道 `generate({ loras: [{ name, strength }] })`，宿主按顺序写 `lora_name` / `strength_model` / `strength_clip`（`lib/comfy.js` 原逻辑，没动）。选择随出图写进配置 `state.loras`，刷新页面还在；盘上已经删掉的条目留在表里标「盘上没有」。
+- `node tools/selftest-client.mjs` 加了一项：选择状态、勾选处理、传参、换工作流清空、CSS 类都在。
+
