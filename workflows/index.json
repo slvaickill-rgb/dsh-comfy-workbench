@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "importedAt": "2026-11-23T20:22:00.125Z",
+  "importedAt": "2026-11-25T13:25:42.796Z",
   "skillsRoot": "C:\\Users\\Slvai\\.workbuddy\\skills",
   "items": [
     {
@@ -212,6 +212,39 @@
         "width": 1024,
         "height": 1024,
         "savePrefix": "2026-11/ffstyle",
+        "nodes": 11
+      }
+    },
+    {
+      "id": "moss__moss-standard",
+      "file": "moss__moss-standard.api.json",
+      "title": "标准 · MOSS-Image 底模直出（50 步 / CFG 3）",
+      "skill": "comfyui-moss",
+      "format": "ui→api",
+      "source": "C:\\Users\\Slvai\\.workbuddy\\skills\\comfyui-moss\\workflows\\moss-standard.ui.json",
+      "summary": {
+        "loader": "unet",
+        "unet": [
+          "moss_image_sft_int8_convrot.safetensors"
+        ],
+        "checkpoints": [],
+        "vae": [
+          "moss_image_vae_bf16.safetensors"
+        ],
+        "clip": [
+          "qwen3.5_9b_moss_image_sft_w4a8_gptq.safetensors"
+        ],
+        "loras": [],
+        "samplers": 1,
+        "steps": 50,
+        "cfg": 3,
+        "cfgLinked": false,
+        "negativeNode": "4",
+        "negativeDefault": "worst quality, bad anatomy, watermark, jpeg artifact",
+        "denoise": 1,
+        "width": 1024,
+        "height": 1024,
+        "savePrefix": "moss-standard",
         "nodes": 11
       }
     },

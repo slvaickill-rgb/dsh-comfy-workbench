@@ -37,6 +37,7 @@ const WIDGET_NAMES = {
   LoraLoaderModelOnly: ['lora_name', 'strength_model'],
   LoraLoader: ['lora_name', 'strength_model', 'strength_clip'],
   ModelSamplingAuraFlow: ['shift', 'sampling'],
+  ModelSamplingSD3: ['shift'],
   SkipLayerGuidanceDiTSimple: ['double_layers', 'single_layers', 'start_percent', 'end_percent'],
   SkipLayerGuidanceDiT: ['double_layers', 'single_layers', 'start_percent', 'end_percent'],
   EmptyFlux2LatentImage: ['width', 'height', 'batch_size'],
@@ -73,6 +74,7 @@ const MOSS_TITLES = {
   'moss-muqiu': '木秋 · 固定角色（自动补 muqiu）',
   'moss-ffstyle-25step': 'nai5 · FFstyle 12 步 / CFG 4',
   'moss-ffstyle': 'nai5快 · FFstyle 四步加速档',
+  'moss-standard': '标准 · MOSS-Image 底模直出（50 步 / CFG 3）',
   'moss-betternude-8step': '八步 · 8 步 DMD 高细节',
   'moss-betternude': '八步 · 完整版（UI 里默认参数）',
 }

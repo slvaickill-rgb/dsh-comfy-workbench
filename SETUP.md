@@ -16,7 +16,7 @@
 ## 1. 装插件
 
 ```bash
-# 1) 目录整个拷到目标机器（6 份工作流已导入到 workflows/，随包走；`format: local` 的手工条目重导时保留）
+# 1) 目录整个拷到目标机器（8 份工作流已导入到 workflows/，随包走；`format: local` 的手工条目重导时保留）
 # 2) 在插件根目录执行：
 node tools/install.mjs
 # 3) 重启 DSH —— 新 bundle 不作用于正在跑的进程
@@ -165,6 +165,7 @@ node tools/doctor.mjs     # 一次性体检：配置 / ComfyUI / 模型 / 工作
 | 报 `mat1 and mat2 shapes...` | 文本编码器用错 | 换 `qwen3.5_9b_..._w4a8_gptq` |
 | 工作流标 ⚠ / 找不到模型 | 文件没放对、或 ComfyUI 没刷新 | 按 §3/§4 放，重启 ComfyUI |
 | 4 步图发灰、字糊 | 分辨率 >1024 却仍 4 步 | 1536 用 6 步，2048 用 8 步 |
+| 标准档整张雪花噪点 | 迁移了官方原档的 `ModelSamplingSD3` | 改 `ModelSamplingAuraFlow`（shift 5 / sampling flow）；本机 int8 重打包不认 SD3 |
 | 出图极慢、硬盘狂转 | 内存不足在换页 | 关别的程序；别同时跑两个任务 |
 
 ## 9. 给 DSH agent 的一段话（贴进 `~/.dsh/AGENTS.md` 即可）
