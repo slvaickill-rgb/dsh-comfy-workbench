@@ -1,6 +1,6 @@
 {
   "name": "dsh-comfy-workbench",
-  "version": "1.6.0",
+  "version": "1.7.1",
   "private": true,
   "type": "module",
   "description": "ComfyUI workbench panel for DeepSeek Harness: sidebar entry, model/LoRA directory probing, LLM prompt rewriting, workspace-bound text input, single-image generation.",

@@ -74,6 +74,8 @@ node tools/selftest-asset.mjs     # 8 项：动图路由
 - **封面**：页面只认同源 `/dsh-comfy/hub/cover?u=`，宿主取图再吐回去（渲染进程不保证放行 `image.civitai.com`）。
   本机直连 `image.civitai.com` 两条路都不通（投毒 DNS + hosts 劫持到 `127.0.0.1`），失败后自动退回
   `images.weserv.nl` 反代；10 分钟进程内缓存 + in-flight 合并挡重复请求。**首次一张要十来秒**，之后走缓存。
+- **已下载**：搜索结果按本地扫盘名单打「已下载」角标（按文件名匹配，不依赖下载历史），筛选行有「只看已下载」
+  （只过滤当前这一页，翻页后再看）。
 - **触发词**：下载时把 Civitai 的 `trainedWords` 记到 `<profile>/.dsh-comfy/lora-triggers.json`；LoRA 下拉里每条带一个
   「词 ⧉」小胶囊，点一下复制（多个词按逗号拼好）。没有记录的老 LoRA 显示「查触发词」，按文件名去 Civitai 回填
   （面板头有「补触发词」一次查 8 个）。大模型改写两阶段都会把「当前 LoRA + 触发词」写进提示词，并要求

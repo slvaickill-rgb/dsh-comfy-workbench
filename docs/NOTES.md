@@ -1,5 +1,17 @@
 # ComfyUI 工作台（dsh-comfy-workbench）
 
+## 1.7.1（2026-11-27）
+
+- 已下载的封面左上角加了一枚**绿色对勾**：内联 SVG（`M4 12.5 9.5 18 20 6.5`），不是 emoji、不外链；`HubCover` 收 `installed` 参数，角标绝对定位在封面左上。
+
+## 1.7.0（2026-11-27）
+
+- **已下载标记**：`markInstalled(models, names)`（`lib/civitai.js`）把本地扫盘得到的文件名（basename 小写）打到 `file.installed`
+  / `version.installed` / `model.installed` 上；`hubSearch` 里用 `dirs({ refresh:false })` 的缓存名单算一次。
+  - 好处：不依赖「这个插件下过什么」，手放进去的文件也能认出来。
+  - 页面：「只看已下载」过滤当前页；卡片角标、详情头与文件行都有「已下载」；空结果时明确说「这一页没有」。
+- 单测：hub 29（新增 markInstalled 一条）、client 27。
+
 ## 1.6.0（2026-11-27）
 
 - **LoRA 触发词**：`lib/triggers.js` 持久化「小写文件名 → trainedWords」，原子写到 `<profile>/.dsh-comfy/lora-triggers.json`。

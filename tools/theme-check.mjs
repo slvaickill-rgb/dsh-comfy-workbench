@@ -147,16 +147,17 @@ const body = `
     <div class="cw-card">
       <div class="cw-card-head">
         <h3 class="cw-card-title">模型库 · 大图网格</h3>
-        <span class="cw-chip">3 个模型</span>
+        <span class="cw-chip">3 个模型（只看已下载）</span>
+        <span class="cw-chip">已下载 1</span>
         <span class="cw-spacer"></span>
         <span style="font-size:12px;color:var(--dsw-alias-label-tertiary)">经本机代理 http://127.0.0.1:7897：封面几百毫秒</span>
       </div>
       <div class="cw-hub-grid">
         <button class="cw-hub-tile" type="button">
-          <div class="cw-hub-tile-cover" style="background:linear-gradient(160deg,#2c3e56,#4a3a63)"></div>
+          <div class="cw-hub-tile-cover" style="background:linear-gradient(160deg,#2c3e56,#4a3a63)"><span class="cw-hub-tile-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg></span></div>
           <div class="cw-hub-tile-body">
             <div class="cw-hub-tile-name">Abstract Painting · Style [LoRA]</div>
-            <div class="cw-hub-tile-meta"><span>LoRA</span><span>Pony V6 XL</span><span>↓ 128,431</span></div>
+            <div class="cw-hub-tile-meta"><span>LoRA</span><span>Pony V6 XL</span><span>↓ 128,431</span><span class="cw-hub-installed">已下载</span></div>
           </div>
         </button>
         <button class="cw-hub-tile" type="button">

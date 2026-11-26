@@ -16,7 +16,7 @@ import { createHash } from 'node:crypto'
 // 桩测不联网：顺手把本机代理自动探测也关掉，否则 getOnce 会绕过下面的 fetch 桩。
 process.env.DSH_COMFY_NO_PROXY = '1'
 
-import { isApiHost, isCdnHost, isDownloadHost, isImageHost, parseRef, normalizeModel, categoryForType, pickDefaultFile, fetchJson, fetchCover, COVER_PROXIES } from '../lib/civitai.js'
+import { isApiHost, isCdnHost, isDownloadHost, isImageHost, parseRef, normalizeModel, categoryForType, pickDefaultFile, markInstalled, fetchJson, fetchCover, COVER_PROXIES } from '../lib/civitai.js'
 import { CredentialStore, HubDownloader, maskKey, safeFileName } from '../lib/hub.js'
 import { parseAdvice, fallbackAdvice, buildFacts, parseChat, parseTranslations } from '../lib/hubAgent.js'
 
@@ -579,6 +579,20 @@ const FACTS = buildFacts({
   job: { items: [{ name: 'good.safetensors', targetCategory: 'loras', path: path.join(LORAS, 'good.safetensors'), sizeBytes: BODY.length, sha256: DIGEST, sha256Ok: true, state: 'done' }] },
   dirs: { modelBase: MODELS, files: { checkpoints: ['anima_aestheticV11.safetensors'], loras: ['a.safetensors'] } },
   workflows: { items: [{ id: 'w1', title: 'Anima', summary: { loras: [{ name: 'a' }], steps: 16, cfg: 4 } }] },
+})
+
+await check('已下载标记：按文件名打 model / version / file', () => {
+  const models = [
+    { id: 1, versions: [{ id: 11, files: [{ name: 'a.safetensors' }, { name: 'b.safetensors' }] }] },
+    { id: 2, versions: [{ id: 22, files: [{ name: 'sub/c.safetensors' }] }] },
+    { id: 3, versions: [] },
+  ]
+  markInstalled(models, ['a.SAFETENSORS', 'c.safetensors'])
+  assert(models[0].installed === true, '模型 1 没标成已下载')
+  assert(models[0].versions[0].files[0].installed === true, 'a 没标成已下载')
+  assert(models[0].versions[0].files[1].installed === false, 'b 不该算已下载')
+  assert(models[1].installed === true && models[1].versions[0].files[0].installed === true, '带子目录的文件名没按 basename 匹配')
+  assert(models[2].installed === false, '没有版本的不该算已下载')
 })
 
 await check('Agent：字段 clamp 与动作白名单', () => {
