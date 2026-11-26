@@ -274,17 +274,114 @@ ComfyUI 的 `samplers.py` 在 `cond_scale == 1` 时把 `uncond_` 置空，`cfg_r
   "thinkingGif": "C:/DSH/深度求索中.gif",
   "rewriteTimeoutMs": 30000,
   "rewriteAutoQuality": false,
-  "rewritePersona": true
+  "rewritePersona": true,
+  "hubHost": "https://civitai.red",
+  "hubMaxBytes": 2147483648,
+  "hubOverwrite": false,
+  "hubAutoAdvice": true,
+  "hubNsfw": false,
+  "hubRememberKey": true
 }
 ```
 
-共 26 个键。`catalogRoot` 是画风库根（绑定后写入），`galleryFolder` 是「生图归入」的分类，
+共 34 个键。`hubMaxBytes` 是单文件上限（默认 2 GiB，本机已有两张 1.19 GB 的加速 LoRA，1 GiB 会误杀）；
+`hubRememberKey` 只是「记住在本机」的勾选初值，**不代表已经存过 key**；
+这里**永远不含 API Key**，凭据在 `<profile>\.dsh-comfy\hub-credentials.json`。`catalogRoot` 是画风库根（绑定后写入），`galleryFolder` 是「生图归入」的分类，
 `previewMethod` 取 `none` / `latent2rgb` / `taesd`，`previewLimit` 是内存里最多留几帧（上限 200，硬顶 12 MB）。
 `thinkingGif` 是改写 busy 时那张动图的路径（只读引用，换图不用改包）；`rewriteTimeoutMs` 是单阶段超时；
 `rewriteAutoQuality` 打开后，原文没写「不要什么」时也允许模型建议通用质量负面词（默认关）。
 `rewritePersona` 控制改写时要不要接全局人设的内容尺度（默认开，见下节）。
 
 字段为 `null` 时按探测结果走。写盘是临时文件 + rename。
+
+## Civitai 模型库（v1.6）
+
+第四个标签页「模型库 · Civitai」。数据只走官方 `/api/v1`，不内嵌 `civitai.red/models`：
+那个页面本机直连返回 403，宿主 CSP 也有 iframe 前科（风险 #9）。
+
+### 五条实测结论（改代码前先读）
+
+1. **公开列表不要 key**。`/api/v1/models` 无凭据 200；gated 资源与 `favorites` / `hidden` 才要 Bearer。
+   所以没填 key 时页面不能把搜索置灰。
+2. **下载一定跳一次 307** 到 R2 签名 CDN。`redirect:'manual'` 手动校验 `Location`，
+   跟到 CDN 那一次**必须去掉 Authorization**（带 Bearer 打签名 URL 会被拒）。
+3. **真实 R2 主机是三段**：`civitai-delivery-worker-prod.<hash>.r2.cloudflarestorage.com`。
+   白名单正则少写中间那段，所有真实下载会被自己拦掉——这条踩过。
+4. **宿主进程里的全局 `fetch` 对 `image.civitai.com` 会直接抛**。同一份代码放到新起的
+   Electron node 进程里正常，说明宿主给 fetch 挂了代理 dispatcher 之类的东西，且它对图片主机不通；
+   而 `node:https` 直连（独立 Agent）稳定。所以 `getOnce()` 是「先 fetch，抛了退 https」，
+   并把「这个主机的 fetch 不通」记 5 分钟，一页 12 张封面不会每张都先卡一个超时。
+   两条路的错误码都带进文案（`fetch ECONNRESET / https -`），下次出事能直接看出卡在哪。
+5. **`Array.find` 找不到返回 `undefined`，不是 `null`**。`normalizeVersion` 里原来写
+   `image === null ? … : coverVariant(image.url)`，真实数据里「有 `images` 字段但全是没 `url` 的项」
+   很常见（版本只挂了视频、或图被下架），第一次真实搜索就整页报
+   `[gateway/internal] Cannot read properties of undefined (reading 'url')`。
+   现在两处都兜住了：`?? null` + `hubSearch` 逐条 try/catch（坏几条少几条，不让整页变红）。
+
+### 封面：直连不通，必须走反代（2026-11-26 补）
+
+- 现场：模型库卡片全是文字块，`/dsh-comfy/hub/cover` 返回 404 +
+  `封面取不到：image.civitai.com（fetch ECONNREFUSED / https ECONNREFUSED）`。
+- 根因两层，都是本机环境：① Steamcommunity 302 把 `image.civitai.com` 写进 hosts 指到 `127.0.0.1`；
+  ② 就算绕开 hosts，DNS 也是投毒的（`nslookup` 给的是 Facebook / Dropbox 的 IP），SNI 出去照样被 reset。
+  所以「换个解析器 / 直连真 IP」都不是办法，只能让境外反代替我们取。
+- 兜底：`COVER_PROXIES` → `images.weserv.nl`（那站自己的短域名 `wsrv.nl` 反倒被墙）。实测一张 9–15 秒，
+  于是配三样：10 分钟进程内缓存、in-flight 合并（浏览器 12 个并发只飞一次）、反代超时 25 秒。
+- 反代只拿 `width=256` 变体再缩到 192×256：卡面才 96×128，4 MB 的原图没必要进内存。
+- **同源问题，还没修**：下载会 307 到 `b2.civitai.com`，同样被 hosts 劫 + SNI 被墙（直连 CF 真 IP 也是 000）；
+  而且 `isDownloadHost` 白名单里根本没有它，现在点下载会先撞 `hub-host-blocked`。等真要下模型时一起弄。
+
+### 凭据存在哪、为什么
+
+`<profile>\.dsh-comfy\hub-credentials.json`，**不进 `config.json`**：`config({})` 返回全量键、
+`/v1/call` 也能取到，key 放进去等于开了一个读凭据的口子；而且 `writeState()` 是全量读出再重写，
+改个步数就会把 key 又写一遍。
+
+- 写盘：临时文件 → `icacls /inheritance:r /grant:r <user>:(F)` → rename。
+  **顺序不能反**：先 rename 再改会留一段可读窗口，而且再写一次会把 ACL 冲掉。
+- 收紧失败不阻断保存，回 `aclHardened:false`，页面提示别把这个目录同步网盘。
+- 写盘失败也不阻断：key 留在内存里本次能用，返回体带 `storeError`。
+- 勾掉「记住在本机」只写内存、**不删旧文件**；要彻底不再恢复得点「清除」。
+- `dispose()` 只清内存，**不删文件**——「重启免填」靠的就是它还在。
+
+### 下载
+
+单任务（第二个 `hubDownload` 直接 `hub-busy`）。每个文件写 `<目标目录>\.dsh-hub-<version>-<随机>.part`，
+边下边算 SHA256，对上才 rename；失败/取消一律删 `.part`，不留半截模型。
+同名默认 409（`hubOverwrite:false`）、超 2 GiB 413、磁盘不够也 413。
+文件名只留 `[A-Za-z0-9._\- 空格 中文]`，扩展名按 `MODEL_EXTENSIONS` 白名单；
+目标目录 realpath 后必须落在 `modelBase` 下。
+
+### 安装建议（`lib/hubAgent.js`）
+
+把结构化事实（落盘路径、大小、SHA256、baseModel、trainedWords、本机底模与 8 份工作流的 LoRA 槽数）
+交给 `ctx.llm`，只让它输出一个 JSON。回来后：`targetDir` 必须命中 26 类别、
+`suggestedStrength` clamp 到 `[0,2]`、`actions` 只认 `selectLora` / `refreshDirs` / `fillDraft` / `copyReport`。
+输出不是 JSON 就降级成纯事实卡片（`degraded:true`），不报错中断。
+
+### 路由（9 条）
+
+| 方法 | 路径 |
+|---|---|
+| GET | `/dsh-comfy/v1/hub/status` · `/v1/hub/job?token=` |
+| GET | `/dsh-comfy/hub/cover?u=` |
+| POST | `/dsh-comfy/v1/hub/key` · `/search` · `/resolve` · `/download` · `/cancel` · `/advice` |
+
+`/hub/key` 只收 POST body，key 不进 query。封面反代把路径段 `original=true` 换成 `width=450`
+（实测 4,192,036 字节 → 46,360 字节），外加主机白名单、https、2 跳、4 MB 上限。
+
+### 错误码（16 个）
+
+`hub-key-missing`(401) · `hub-key-file-invalid`(422) · `hub-key-store-failed`(500) ·
+`hub-host-blocked`(403) · `hub-api-error`(502) · `hub-rate-limited`(429) · `hub-invalid-url`(422) ·
+`hub-model-type-unsupported`(422) · `hub-target-invalid`(422) · `hub-file-exists`(409) ·
+`hub-size-exceeded`(413) · `hub-hash-mismatch`(422) · `hub-download-failed`(502) ·
+`hub-job-missing`(404) · `hub-busy`(409) · `hub-advice-invalid`(502)
+
+### 不要分享的文件
+
+- `<profile>\.dsh-comfy\hub-credentials.json`（API Key）
+- `<profile>\.dsh-comfy\launch.log`（含本机路径与启动命令行）
 
 ## 逐步预览与输出操作（v1.2）
 
@@ -521,6 +618,10 @@ node -e "import('file:///C:/DSH/Projects/dsh-comfy-workbench/lib/dirs.js').then(
 | 12 | 预览帧让 4 GB 显存多一次 latent→RGB | `latent2rgb` 是矩阵乘不是 VAE 解码；默认开，卡片里可关（下一个任务生效） |
 | 13 | 复制图片依赖 `navigator.clipboard` / `ClipboardItem` | 两级降级：先退复制图片地址，再退复制日志；不改宿主 CSP |
 | 14 | 皮肤把 `--dsw-alias-brand-primary` 解析成白色 | 主按钮与选中分类**不拿品牌色打底**：主按钮用 `label-primary` / `bg-layer-1` 反色，选中的分类用悬停底色 + 品牌色描边。`node tools/theme-check.mjs --shoot` 可放大看样张 |
+| 15 | Civitai 限流 / 401 | 429 透传 `Retry-After`；401/403 统一 `hub-key-missing`，**不自动删已存 key**（可能只是该资源 gated 或临时故障） |
+| 16 | R2 签名主机是三段域名 | 白名单正则必须放中间那段 hash，否则真下载全被自己拦掉（实测踩过）。桩测有专门一条断言 |
+| 17 | 封面 `orig` 一张 4 MB+ | 换成 `width=450` 路径段（4.19 MB → 46 KB），反代侧再兜 4 MB 上限 |
+| 18 | ComfyUI 占用同名文件时 rename 会失败 | 报 `hub-download-failed`，文案给「重启 8188 后重试」；未真机验证 |
 ## LoRA 多选器（2026-11-25）
 
 - 步数旁边原来那枚 `N LoRA 可用` 死徽标改成开关：点开在环境卡里铺一张多选表，列出 `models/loras` 里的全部文件；勾选顺序＝写入 `LoraLoader` 槽的顺序，每个勾上的条带一个强度输入。

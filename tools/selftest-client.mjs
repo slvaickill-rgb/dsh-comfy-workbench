@@ -69,11 +69,11 @@ check('写死的浅色底只剩 GIF 贴纸那几处', () => {
   assert(light.length <= 3, '还有别的写死浅色底：' + light.join(', '))
 })
 
-check('METHODS 与 typert ENDPOINTS 同序同集（25 个）', () => {
+check('METHODS 与 typert ENDPOINTS 同序同集（33 个）', () => {
   const start = source.indexOf('const METHODS = [')
   const end = source.indexOf(']', start)
   const methods = [...source.slice(start, end).matchAll(/'([A-Za-z]\w*)'/g)].map((m) => m[1])
-  assert(methods.length === 25, 'METHODS 条数 ' + methods.length)
+  assert(methods.length === 33, 'METHODS 条数 ' + methods.length)
   assert(methods.join(',') === ENDPOINTS.join(','), '顺序或集合不一致' + String.fromCharCode(10) + 'client: ' + methods.join(',') + String.fromCharCode(10) + 'host:   ' + ENDPOINTS.join(','))
 })
 
@@ -117,11 +117,56 @@ check('busy 状态换成 GIF 贴纸', () => {
   assert(source.includes("rewritePhase === 'apply' ? '思考中' : '判定中'"), '阶段文案没接上')
 })
 
-check('五个卡片 / 三个标签页仍在', () => {
+check('五个卡片 / 四个标签页仍在', () => {
   const cards = (source.match(/className: 'cw-card/g) ?? []).length
   assert(cards >= 5, 'cw-card 只有 ' + cards + ' 个')
-  for (const tab of ["setTab('work')", "setTab('gallery')", "setTab('catalog')"]) {
+  for (const tab of ["setTab('work')", "setTab('gallery')", "setTab('catalog')", "setTab('hub')"]) {
     assert(source.includes(tab), '缺标签 ' + tab)
+  }
+  assert(source.includes("'模型库 · Civitai'"), '第四个标签文案没接上')
+  assert(source.includes('https://civitai.red/models'), '模型库没显示来源地址')
+})
+
+check('模型库：key 三态 + 记住本机 + 不回显', () => {
+  assert(source.includes("type: 'password'"), 'key 输入框不是 password')
+  assert(source.includes("autoComplete: 'off'"), 'key 输入框没关自动填充')
+  assert(source.includes('记住在本机'), '缺「记住在本机」勾选框')
+  assert(source.includes('仅本次有效'), '缺「仅本次有效」这一态')
+  assert(source.includes('已保存 '), '缺「已保存 + 时间」这一态')
+  assert(!source.includes('setKeyInput(next.key'), '页面把 key 原文读回来了')
+  assert(source.includes("call('hubKey', { key: text, persist: remember })"), '保存没带 persist')
+  assert(source.includes("call('hubKey', { key: '' })"), '清除没走空串')
+})
+
+check('模型库：右侧抽屉与四个一键动作', () => {
+  for (const token of ['Agent · 安装建议', '加入 LoRA 选择', '刷新目录', '填入会话草稿', '复制建议']) {
+    assert(source.includes(token), '缺 ' + token)
+  }
+  assert(source.includes('cw-hub-drawer'), '没有抽屉组件')
+  assert(source.includes('requestAdvice'), '没有要建议的入口')
+})
+
+check('模型库：勾选 → 目标目录 → 下载', () => {
+  for (const token of ['toggleFile', 'setTarget', "call('hubDownload'", "call('hubJob'", "call('hubCancel'", "call('hubSearch'", "call('hubResolve'"]) {
+    assert(source.includes(token), '缺 ' + token)
+  }
+  assert(source.includes('targetCategory'), '勾选项没带目标目录')
+  assert(source.includes("'/dsh-comfy/hub/cover'") || source.includes('hub/cover'), '封面没走同源反代')
+})
+
+check('模型库样式只用主题变量', () => {
+  const css = cssBlock()
+  for (const token of ['.cw-hub-drawer', '.cw-hub-progress', '.cw-hub-card', '.cw-hub-file']) {
+    assert(css.includes(token), 'CSS 缺 ' + token)
+  }
+  // 不写正则：逐条规则扫，模型库的选择器里不许出现写死的浅色底。
+  const rules = css.split('}')
+  for (const rule of rules) {
+    if (!rule.includes('.cw-hub')) continue
+    const lower = rule.toLowerCase()
+    assert(!lower.includes('background:#f'), '模型库样式里写死了浅色底：' + rule.slice(0, 80))
+    assert(!lower.includes('background:#fff'), '模型库样式里写死了白底：' + rule.slice(0, 80))
+    assert(!lower.includes('background:white'), '模型库样式里写死了白底：' + rule.slice(0, 80))
   }
 })
 

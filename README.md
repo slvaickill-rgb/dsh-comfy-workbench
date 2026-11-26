@@ -20,6 +20,7 @@
 | **角色锚定** | 提示词里点名知识库里的角色，自动补「作品 - 罗马音 - 外貌」串（只对 MOSS 工作流） |
 | **图库** | 只读扫产物目录、缩略图、NSFW 分级、画风图库（314 画风 / 34,395 样张） |
 | **放大 / 预览** | ESRGAN ×2 / ×4；生成过程逐步预览（latent2rgb / taesd） |
+| **模型库（Civitai）** | 第四页：按 Civitai 公开 API 搜 LoRA / 底模 / VAE，勾选 → 下到 26 个类别目录之一，SHA256 校验；下完右侧抽屉给安装建议（兼容性 / 触发词 / 权重） |
 
 ## 三条设计取舍
 
@@ -47,11 +48,30 @@ node tools/install.mjs     # 建联接 + 登记 profile（幂等）
 node tools/doctor.mjs             # 装机体检：安装登记 / ComfyUI / 模型 / 缺哪些文件
 node tools/selftest-rewrite.mjs   # 39 项：负面判定矩阵、两阶段编排、超时取消
 node tools/selftest-anchor.mjs    # 16 项：角色档案解析、命中、注入位置
-node tools/selftest-client.mjs    # 16 项：页面静态断言
+node tools/selftest-client.mjs    # 21 项：页面静态断言（契约 33、四个标签页、key 不回显）
+node tools/selftest-hub.mjs       # 25 项：Civitai 桩测（链接解析、SSRF、307、SHA256、凭据重启恢复）
 node tools/selftest-asset.mjs     # 8 项：动图路由
 ```
 
 全部不联网、不需要 ComfyUI 在线。
+
+## 模型库（Civitai）
+
+第四个标签页。**不内嵌 `civitai.red/models`**——那个页面从本机直连返回 403，宿主 CSP 也有 iframe 前科；
+页面自己画，数据走官方 `/api/v1`，地址只作来源标识与外链入口。
+
+- **搜索不要 key**：公开列表无凭据就返回 200；gated 资源才需要 API Key。
+- **key 存本机**：`<profile>\.dsh-comfy\hub-credentials.json`，**独立文件、不进 `config.json`**；
+  保存时对临时文件 `icacls /inheritance:r` 再 rename。重启 DSH 免填，也可以一键清除。
+  勾掉「记住在本机」= 这次只放内存，**不动**已存的那份。
+- **下载**：单任务、流式写 `.part`、SHA256 对上才 rename；同名默认 409，单文件上限 2 GiB。
+  文件名只保留字母数字、`.` `_` `-`、空格与中文；目标目录 realpath 后必须在模型根下。
+- **封面**：页面只认同源 `/dsh-comfy/hub/cover?u=`，宿主取图再吐回去（渲染进程不保证放行 `image.civitai.com`）。
+  本机直连 `image.civitai.com` 两条路都不通（投毒 DNS + hosts 劫持到 `127.0.0.1`），失败后自动退回
+  `images.weserv.nl` 反代；10 分钟进程内缓存 + in-flight 合并挡重复请求。**首次一张要十来秒**，之后走缓存。
+- **安装建议**：把落盘路径、SHA256、baseModel、trainedWords、本机底模与工作流槽数交给 `ctx.llm`，
+  只让它输出一个 JSON；`targetDir` 必须命中 26 类别、权重 clamp 到 [0,2]、动作只认四个。
+  模型不可用或输出不是 JSON 就降级成纯事实卡片，不影响下载结果。
 
 ## 适合 / 不适合
 
