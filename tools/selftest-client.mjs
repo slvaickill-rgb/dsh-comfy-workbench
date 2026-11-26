@@ -77,6 +77,19 @@ check('METHODS 与 typert ENDPOINTS 同序同集（34 个）', () => {
   assert(methods.join(',') === ENDPOINTS.join(','), '顺序或集合不一致' + String.fromCharCode(10) + 'client: ' + methods.join(',') + String.fromCharCode(10) + 'host:   ' + ENDPOINTS.join(','))
 })
 
+check('宿主服务实现了每个 ENDPOINTS（防 gateway/method-unavailable）', () => {
+  // 这个坑踩过：ENDPOINTS 里加了 hubChat，忘了在 index.js 的 Service 类上补转发方法，
+  // 页面就只拿到 `[gateway/method-unavailable] ... has no callable method "hubChat"`。
+  const indexSource = fs.readFileSync(path.join(ROOT, 'lib', 'index.js'), 'utf8')
+  const apiSource = fs.readFileSync(path.join(ROOT, 'lib', 'api.js'), 'utf8')
+  const missing = []
+  for (const name of ENDPOINTS) {
+    if (!new RegExp('\\n    ' + name + '\\(args\\) \\{').test(indexSource)) missing.push(name + '（index.js 没转发）')
+    if (!apiSource.includes('\n    ' + name + ',')) missing.push(name + '（api.js 没导出）')
+  }
+  assert(missing.length === 0, '宿主半缺：' + missing.join('、'))
+})
+
 check('页面调用的方法名都在 METHODS 里', () => {
   const start = source.indexOf('const METHODS = [')
   const end = source.indexOf(']', start)
