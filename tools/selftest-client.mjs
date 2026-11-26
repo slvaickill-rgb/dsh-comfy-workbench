@@ -248,10 +248,11 @@ check('模型库样式只用主题变量', () => {
 })
 
 check('模型库：已下载标记 + 只看已下载', () => {
-  for (const token of ['onlyDownloaded', 'shownItems', '只看已下载', 'cw-hub-installed', 'cw-hub-tile-check', 'M4 12.5 9.5 18 20 6.5']) {
+  for (const token of ['onlyDownloaded', 'shownItems', '只看已下载', 'cw-hub-installed', 'cw-hub-tile-check', 'M4 12.5 9.5 18 20 6.5', 'installedSet', 'modelInstalled', 'fileInstalled', 'modelFiles']) {
     assert(source.includes(token), '缺 ' + token)
   }
   assert(source.includes('installedCount'), '结果头没显示已下载数量')
+  assert(source.includes('cw-hub-local'), '只看已下载时没列本机清单')
 })
 
 check('模型库：底模下拉含 MOSS，并会记住结果里的新底模', () => {

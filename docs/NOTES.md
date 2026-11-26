@@ -1,5 +1,12 @@
 # ComfyUI 工作台（dsh-comfy-workbench）
 
+## 1.7.2（2026-11-27）
+
+- 主人开了「只看已下载」却看到 0：当时宿主还是 1.6.0（`markInstalled` 没生效），而且过滤是逐页的——那一页的 12 个 MOSS 模型里只有一个是他本机有的。
+- 改：页面自己算。`HubPane` 收 `modelFiles`（`dirs.files`），`installedSet` 按 basename 小写建集合，`fileInstalled()` / `modelInstalled()` 本地判定；宿主给了 `installed` 标记就优先用，没有也不影响。
+- 「只看已下载」勾上时额外挂一块 `<details>`「本机已装 N 个模型文件（点开看清单）」，无论这一页有没有命中都能确认扫盘结果。
+- 仍未覆盖的情况：本地文件被改过名（和 Civitai 的 `files[].name` 不一致）就匹配不到——这是按文件名匹配的固有边界，不猜。
+
 ## 1.7.1（2026-11-27）
 
 - 已下载的封面左上角加了一枚**绿色对勾**：内联 SVG（`M4 12.5 9.5 18 20 6.5`），不是 emoji、不外链；`HubCover` 收 `installed` 参数，角标绝对定位在封面左上。
