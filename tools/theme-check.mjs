@@ -124,13 +124,15 @@ const body = `
         <label class="cw-row"><span class="cw-label">大模型</span><select class="cw-select"><option>DeepSeek · DeepSeek-V4.1-Flash</option></select></label>
       </div>
       <div class="cw-lora">
+        <button class="cw-chip cw-chip-btn" aria-expanded="true">LoRA 2/2 已选 ▲</button>
+        <div class="cw-lora-pop" style="position:static;transform:none;width:min(430px,100%);box-shadow:none">
         <div class="cw-lora-head">
           <span class="cw-card-title">LoRA 多选</span>
-          <span class="cw-chip">2 个 LoRA 槽 · 按勾选顺序写入</span>
+          <span class="cw-chip">2 槽</span>
           <span class="cw-chip">已选 2 / 2 槽</span>
           <span class="cw-spacer"></span>
           <button class="cw-btn">清空</button>
-          <button class="cw-btn">收起</button>
+          <button class="cw-btn">完成</button>
         </div>
         <div class="cw-lora-list">
           <div class="cw-lora-item on"><input type="checkbox" checked><span class="cw-lora-idx">1</span><span class="cw-lora-name">deep_penetration_anima_v1.safetensors</span><input class="cw-input cw-lora-str" type="number" value="0.8"></div>
@@ -139,6 +141,7 @@ const body = `
           <div class="cw-lora-item missing"><input type="checkbox"><span class="cw-lora-idx off"></span><span class="cw-lora-name">old_deleted_style_lora.safetensors</span><span class="cw-chip">盘上没有</span><input class="cw-input cw-lora-str" type="number" value="1" disabled></div>
         </div>
         <p class="cw-lora-foot">槽1 deep_penetration_anima_v1.safetensors@0.8 · 槽2 real-disgust-anima.safetensors@0.8；被替掉的默认 LoRA 本次不加载（蒸馏加速 LoRA 也占这类槽，换掉它加速档会失效）</p>
+        </div>
       </div>
     </div>
     <div class="cw-card">

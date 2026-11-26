@@ -246,13 +246,18 @@ check('思考卡显示判定依据与思考摘要', () => {
 
 check('LoRA 多选器：勾选顺序写进槽位', () => {
   const css = cssBlock()
-  for (const token of ['cw-chip-btn', 'cw-lora-list', 'cw-lora-item', 'cw-lora-idx', 'cw-lora-name', 'cw-lora-str', 'cw-lora-foot']) {
+  for (const token of ['cw-chip-btn', 'cw-lora-pop', 'cw-lora-list', 'cw-lora-item', 'cw-lora-idx', 'cw-lora-name', 'cw-lora-str', 'cw-lora-foot']) {
     assert(css.includes('.' + token), 'CSS 缺 .' + token)
   }
   assert(source.includes('const [loraSel, setLoraSel] = useState([])'), '没有 LoRA 选择状态')
   assert(source.includes('const toggleLora ='), '没有勾选处理')
   assert(source.includes('loras: loraSel.map((item) => ({ name: item.name, strength: item.strength }))'), '出图没把勾选传给宿主')
   assert(source.includes('setLoraSel([])'), '换工作流没清空勾选')
+  // 下拉：挂在那枚徽标下面，点外面 / Esc 收起。
+  assert(source.includes("className: 'cw-lora-pop'"), 'LoRA 面板没做成下拉')
+  assert(source.includes('loraPopRef'), '下拉没挂锚点')
+  assert(source.includes("event.key === 'Escape'"), 'Esc 收不起下拉')
+  assert(source.includes('HUB_BASE_MODEL_LABELS'), '底模下拉没汉化标签')
 })
 
 console.log('')
