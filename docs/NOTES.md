@@ -372,6 +372,12 @@ ComfyUI 的 `samplers.py` 在 `cond_scale == 1` 时把 `uncond_` 置空，`cfg_r
 - 修法二（页面侧）：`bridge.call()` 只在 `method-unavailable` 这一种错误上退到同源 HTTP `/v1/call`。
   这是网关 Plumbing 错误，请求没进业务代码，重试不会多跑一次出图/下载；其余业务错误照旧不换通道（出图重试就是两张图）。
 - 效果：宿主没重启时，页面刷新就能用（HTTP 路由直接调 `api[name]`）；重启后走回 Remote。
+### 底模下拉为什么要带 MOSS Image（2026-11-26）
+
+- 主人问「这里为什么没有 moss」。Civitai 的枚举名是 **`MOSS Image`**（带空格），下拉里原来只有 Illustrious / Pony / SDXL / SD 1.5 / Flux / Qwen。
+- 实测 `baseModels=MOSS Image` HTTP 200 且结果底模全是 MOSS Image；顺手验了 NoobAI / HiDream / Chroma / Wan Video 也有效（`SD 3.5 Large/Medium` 返回 0 条，没加）。
+- 下拉现在还把「搜索结果里出现过的底模」补进去（`extraBases`，最多 24 个）：Civitai 以后再上新家族，不用改代码就能筛。
+
 ### 凭据存在哪、为什么
 
 `<profile>\.dsh-comfy\hub-credentials.json`，**不进 `config.json`**：`config({})` 返回全量键、

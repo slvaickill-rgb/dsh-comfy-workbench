@@ -192,6 +192,12 @@ check('模型库样式只用主题变量', () => {
   }
 })
 
+check('模型库：底模下拉含 MOSS，并会记住结果里的新底模', () => {
+  assert(source.includes("'MOSS Image'"), '底模下拉没有 MOSS Image')
+  assert(source.includes('extraBases'), '没有把结果里出现的底模补进下拉')
+  assert(source.includes('HUB_BASE_MODELS.concat(extraBases'), '下拉没合并动态项')
+})
+
 check('模型库：大图网格 + 点开看详情', () => {
   for (const token of ['cw-hub-grid', "className: 'cw-hub-tile'", 'cw-hub-detail-card', 'cw-hub-desc', 'detailId']) {
     assert(source.includes(token), '缺 ' + token)
