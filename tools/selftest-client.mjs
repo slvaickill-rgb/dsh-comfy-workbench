@@ -181,6 +181,11 @@ check('模型库：模型助手已下线，改自动翻译', () => {
   // 下载进度：底栏一条、每个文件一条，都带百分比。
   assert(source.includes('cw-hub-foot-bar'), '底栏没有进度条')
   assert(source.includes('cw-hub-item-bar'), '每个文件没有进度条')
+  // LoRA 文件名也要翻：中文名在上、原名小字。
+  assert(source.includes('zhLoras'), 'LoRA 列表没翻译')
+  assert(source.includes('cleanLoraName'), '文件名没清洗成可翻的短语')
+  assert(source.includes('cw-lora-en'), 'LoRA 原名小字样式缺')
+  assert(source.includes("style: 'lora'"), 'LoRA 翻译没走文件名专用口吻')
   assert(source.includes('jobPercent'), '没有总进度百分比')
 })
 

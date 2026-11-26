@@ -396,6 +396,15 @@ ComfyUI 的 `samplers.py` 在 `cond_scale == 1` 时把 `uncond_` 置空，`cfg_r
   详情简介打开时翻一次并记住，「看原文 / 看译文」随时切。没配大模型就老实显示英文，不弹错。
 - 进度：`job` 卡片有总条 + 每个文件的百分比与细条；底栏加一条常驻的 `cw-hub-foot-bar`，显示「下载中 · 67%」。
 - 测试：client 25 项（改成断言「助手残留为 0 / 有 hubTranslate / 有两条进度条」）、hub 28 项（新增翻译解析 5 条），其余照旧。版本 0.3.0。
+### LoRA 文件名也要翻（2026-11-26 晚）
+
+- 主人说 LoRA 下拉里一串英文看不出来是什么。加 `style: 'lora'` 这一档口吻：`SYSTEM_PROMPT_TRANSLATE_LORA`。
+- 两个必须记住的坑：
+  1. **deepseek-flash 会把 token 花在思考上**：第一次 maxTokens=700，回来 `text` 是空串、全在 `reasoning` 里。现在统一 2500。
+  2. **提示词不写「描述性词汇必须翻译」，模型会整句照抄**：第一次让它「保留专名」，结果 12 个文件名原样返回。加上「成人内容照实翻、专名才保留」后才出中文。
+- 实测效果：`PenisLoraMossNoTriggerwords → 阴茎LoRA MOSS无触发词`、`deep penetration anima v1 → 深度插入anima v1`、`moss image sft 4step v2.0 → MOSS图像SFT四步v2.0`、`real-disgust-anima → 真实厌恶感anima`。
+- 文件名先洗一遍再翻（去扩展名、`_` 换空格，`cleanLoraName`），缓存键带口吻前缀（`lora:` / `text:`），同一文件只翻一次。
+- 页面：下拉里中文名在上、原名 10px 小字在下；点开面板才翻，关着不花 token。
 ### 凭据存在哪、为什么
 
 `<profile>\.dsh-comfy\hub-credentials.json`，**不进 `config.json`**：`config({})` 返回全量键、
