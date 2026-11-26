@@ -156,7 +156,7 @@ check('模型库：勾选 → 目标目录 → 下载', () => {
 
 check('模型库样式只用主题变量', () => {
   const css = cssBlock()
-  for (const token of ['.cw-hub-drawer', '.cw-hub-progress', '.cw-hub-card', '.cw-hub-file']) {
+  for (const token of ['.cw-hub-drawer', '.cw-hub-progress', '.cw-hub-grid', '.cw-hub-tile', '.cw-hub-detail', '.cw-hub-file']) {
     assert(css.includes(token), 'CSS 缺 ' + token)
   }
   // 不写正则：逐条规则扫，模型库的选择器里不许出现写死的浅色底。
@@ -168,6 +168,17 @@ check('模型库样式只用主题变量', () => {
     assert(!lower.includes('background:#fff'), '模型库样式里写死了白底：' + rule.slice(0, 80))
     assert(!lower.includes('background:white'), '模型库样式里写死了白底：' + rule.slice(0, 80))
   }
+})
+
+check('模型库：大图网格 + 点开看详情', () => {
+  for (const token of ['cw-hub-grid', "className: 'cw-hub-tile'", 'cw-hub-detail-card', 'cw-hub-desc', 'detailId']) {
+    assert(source.includes(token), '缺 ' + token)
+  }
+  assert(source.includes('setDetailId(model.id)'), '卡片没接详情入口')
+  assert(source.includes('detail.description'), '详情没显示简介')
+  assert(source.includes("'在 Civitai 打开 ↗'"), '详情没给外链')
+  // 代理提示要走 host 报上来的 status.proxy，不能写死文案。
+  assert(source.includes('status?.proxy'), '页面没显示代理状态')
 })
 
 check('接口说明卡片列出新路由', () => {

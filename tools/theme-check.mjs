@@ -141,6 +141,74 @@ const body = `
         <p class="cw-lora-foot">槽1 deep_penetration_anima_v1.safetensors@0.8 · 槽2 real-disgust-anima.safetensors@0.8；被替掉的默认 LoRA 本次不加载（蒸馏加速 LoRA 也占这类槽，换掉它加速档会失效）</p>
       </div>
     </div>
+    <div class="cw-card">
+      <div class="cw-card-head">
+        <h3 class="cw-card-title">模型库 · 大图网格</h3>
+        <span class="cw-chip">3 个模型</span>
+        <span class="cw-spacer"></span>
+        <span style="font-size:12px;color:var(--dsw-alias-label-tertiary)">经本机代理 http://127.0.0.1:7897：封面几百毫秒</span>
+      </div>
+      <div class="cw-hub-grid">
+        <button class="cw-hub-tile" type="button">
+          <div class="cw-hub-tile-cover" style="background:linear-gradient(160deg,#2c3e56,#4a3a63)"></div>
+          <div class="cw-hub-tile-body">
+            <div class="cw-hub-tile-name">Abstract Painting · Style [LoRA]</div>
+            <div class="cw-hub-tile-meta"><span>LoRA</span><span>Pony V6 XL</span><span>↓ 128,431</span></div>
+          </div>
+        </button>
+        <button class="cw-hub-tile" type="button">
+          <div class="cw-hub-tile-cover" style="background:linear-gradient(160deg,#4a2f43,#6b3a3a)"></div>
+          <div class="cw-hub-tile-body">
+            <div class="cw-hub-tile-name">Deepseek Whale Girl Maid（角色 LoRA）</div>
+            <div class="cw-hub-tile-meta"><span>LoRA</span><span>Anima</span><span>↓ 3,120</span></div>
+          </div>
+        </button>
+        <button class="cw-hub-tile" type="button">
+          <div class="cw-hub-tile-cover" style="background:linear-gradient(160deg,#2f4a3d,#3a6b55)"></div>
+          <div class="cw-hub-tile-body">
+            <div class="cw-hub-tile-name">写实人像 Real Portrait</div>
+            <div class="cw-hub-tile-meta"><span>Checkpoint</span><span>SDXL 1.0</span><span>↓ 89,002</span></div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <div class="cw-card">
+      <div class="cw-card-head">
+        <h3 class="cw-card-title">详情弹层（点卡片打开，点遮罩关闭）</h3>
+      </div>
+      <div class="cw-hub-detail" style="position:static;inset:auto;background:none;padding:0;display:block">
+        <div class="cw-hub-detail-card">
+          <div class="cw-card-head">
+            <h3 class="cw-card-title">Abstract Painting · Style [LoRA]</h3>
+            <span class="cw-chip">LoRA</span>
+            <span class="cw-spacer"></span>
+            <a class="cw-btn" href="#">在 Civitai 打开 ↗</a>
+            <button class="cw-btn">关闭</button>
+          </div>
+          <div class="cw-hub-detail-top">
+            <div class="cw-hub-detail-cover" style="background:linear-gradient(160deg,#2c3e56,#4a3a63)"></div>
+            <div class="cw-hub-detail-info">
+              <div class="cw-hub-meta"><span>by abstracter</span><span>↓ 128,431</span><span>♥ 4,218</span><span>★ 4.87</span><span>底模 Pony V6 XL / SDXL 1.0</span></div>
+              <div class="cw-hub-meta"><span class="cw-chip">abstract</span><span class="cw-chip">painting</span><span class="cw-chip">style</span></div>
+              <div class="cw-hub-file"><span style="opacity:.7">版本</span><select><option>v1.0 · Pony V6 XL</option></select><span style="opacity:.7">触发词 abstract20painting2020style</span></div>
+              <p class="cw-hub-desc">作者简介（HTML 已剥成纯文本，段落与换行保留）：这是一段示例描述，讲画风来源、怎么用、权重建议 0.7–0.85 最稳。
+
+第二段：用法与注意事项。太长就在这个框里滚动，不撑爆弹层。</p>
+            </div>
+          </div>
+          <div class="cw-hub-ver">
+            <div class="cw-hub-file"><input type="checkbox" checked><span class="nm">abstract20painting2020style.safetensors</span><span style="opacity:.7">72.4 MB</span><span style="opacity:.5">SafeTensor</span><select><option>LoRA</option></select></div>
+            <div class="cw-hub-file"><input type="checkbox"><span class="nm">abstract20_painting_v2.safetensors</span><span style="opacity:.7">144.8 MB</span><span style="opacity:.5">SafeTensor</span><select><option>LoRA</option></select></div>
+          </div>
+          <div class="cw-hub-actions">
+            <span class="cw-hub-meta">已选 1 个 · 72.4 MB</span>
+            <span class="cw-spacer"></span>
+            <button class="cw-btn primary">下载选中</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 `

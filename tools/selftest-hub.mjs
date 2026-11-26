@@ -13,6 +13,9 @@ import os from 'node:os'
 import path from 'node:path'
 import { createHash } from 'node:crypto'
 
+// 桩测不联网：顺手把本机代理自动探测也关掉，否则 getOnce 会绕过下面的 fetch 桩。
+process.env.DSH_COMFY_NO_PROXY = '1'
+
 import { isApiHost, isCdnHost, isDownloadHost, isImageHost, parseRef, normalizeModel, categoryForType, pickDefaultFile, fetchJson, fetchCover, COVER_PROXIES } from '../lib/civitai.js'
 import { CredentialStore, HubDownloader, maskKey, safeFileName } from '../lib/hub.js'
 import { parseAdvice, fallbackAdvice, buildFacts } from '../lib/hubAgent.js'

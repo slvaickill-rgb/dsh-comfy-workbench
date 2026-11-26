@@ -331,6 +331,25 @@ ComfyUI 的 `samplers.py` 在 `cond_scale == 1` 时把 `uncond_` 置空，`cfg_r
 - **同源问题，还没修**：下载会 307 到 `b2.civitai.com`，同样被 hosts 劫 + SNI 被墙（直连 CF 真 IP 也是 000）；
   而且 `isDownloadHost` 白名单里根本没有它，现在点下载会先撞 `hub-host-blocked`。等真要下模型时一起弄。
 
+### 本机代理优先（2026-11-26 晚）
+
+- 主人开着 Clash 才发现：同一张封面直连 / 境外反代要 9–15 秒，走 `127.0.0.1:7897` 只要 0.6 秒。
+- `lib/proxy.js`：并发探常见端口（7897/7890/7891/10809/10808/1080/2080/8118/33210，单次 300 ms，
+  结果缓存 60 秒），也认 `HTTPS_PROXY` / `ALL_PROXY`；`state.hubProxy` 可指定（空串 = 关掉自动探）。
+  握手是 CONNECT + TLS，SNI 仍是目标主机名，证书照常校验。
+- `getOnce()` 顺序变成：**本机代理 → 全局 fetch → https 直连**。封面、API、下载共用这一条。
+- 顺带修了下载：`/api/download/models/<id>` 现在 307 到 `b2.civitai.com`，`isDownloadHost` 加 `*.civitai.com`，
+  走代理能下；没代理时那条 CDN 在 hosts 里被劫，还是不通。
+- 页面：`hubStatus` 报 `proxy` 地址，模型库顶部显示「经本机代理 …：封面几百毫秒」或「没探到本机代理…」。
+- 桩测：`DSH_COMFY_NO_PROXY=1` 关自动探测，否则 `getOnce` 会绕过 fetch 桩。
+
+### 大图网格 + 详情弹层（2026-11-26 晚）
+
+- 结果从 96×128 行卡改成 `repeat(auto-fill,minmax(176px,1fr))` 的 3:4 大图网格；点卡片开整屏弹层，点遮罩 / 关闭退出。
+- 详情：大封面、作者 / 下载 / 点赞 / 评分 / 底模、标签、版本切换、简介、文件勾选 + 目标目录 + 下载。
+- `normalizeModel` / `normalizeVersion` 新增 `description`（`htmlToText()` 剥标签、留段落、4000 字上限）；
+  页面只渲染纯文本，不做 HTML 注入。
+- 弹层卡片要 `box-sizing:border-box`：`width:min(940px,100%)` 加左右 padding，不加就会顶出一条横向滚动条（样张里发现的）。
 ### 凭据存在哪、为什么
 
 `<profile>\.dsh-comfy\hub-credentials.json`，**不进 `config.json`**：`config({})` 返回全量键、
