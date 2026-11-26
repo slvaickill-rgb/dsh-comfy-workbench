@@ -158,6 +158,15 @@ check('模型库：key 三态 + 记住本机 + 不回显', () => {
   assert(source.includes("call('hubKey', { key: '' })"), '清除没走空串')
 })
 
+check('模型库：HubPane 自己用到的基础状态都有声明（黑屏回归）', () => {
+  // 踩过：批量删助手代码时把 paste / pollRef 的声明一起删了，进模型库整页黑屏
+  // （React 渲染时 ReferenceError）。这里只钉最容易漏的那几个。
+  for (const token of ["const [paste, setPaste] = useState('')", 'const pollRef = useRef(null)']) {
+    assert(source.includes(token), 'HubPane 缺声明：' + token)
+  }
+  assert(source.includes('pollRef.current = setInterval'), '下载轮询还在用 pollRef')
+})
+
 check('模型库：模型助手已下线，改自动翻译', () => {
   // 助手那套 UI 全删了：图标按钮、对话框、标签插入都不该再出现。
   for (const token of ['模型助手 · 标签 / 配置', 'cw-hub-chat-log', 'cw-hub-chat-input', "call('hubChat'"]) {
