@@ -77,6 +77,13 @@ check('METHODS 与 typert ENDPOINTS 同序同集（34 个）', () => {
   assert(methods.join(',') === ENDPOINTS.join(','), '顺序或集合不一致' + String.fromCharCode(10) + 'client: ' + methods.join(',') + String.fromCharCode(10) + 'host:   ' + ENDPOINTS.join(','))
 })
 
+check('网关 method-unavailable 退到 HTTP /v1/call（只这一种）', () => {
+  assert(source.includes('method-unavailable|has no callable method'), '没有 method-unavailable 的兜底匹配')
+  assert(source.includes('return httpCall(method, args)'), '兜底没走 HTTP')
+  // 其余业务错误不能重试：文案里得留着这句约定。
+  assert(source.includes('绝不换通道重试'), '丢了「业务错误不换通道」的注释/约定')
+})
+
 check('宿主服务实现了每个 ENDPOINTS（防 gateway/method-unavailable）', () => {
   // 这个坑踩过：ENDPOINTS 里加了 hubChat，忘了在 index.js 的 Service 类上补转发方法，
   // 页面就只拿到 `[gateway/method-unavailable] ... has no callable method "hubChat"`。

@@ -363,6 +363,15 @@ ComfyUI 的 `samplers.py` 在 `cond_scale == 1` 时把 `uncond_` 置空，`cfg_r
   内置三句快捷问题、Enter 发送 / Shift+Enter 换行、错误红字挂在对应那条消息上。
 - 下完不再自动烧 token：`autoAdvice` 现在只负责「把问题填进输入框 + 打开对话框」。
 - `hubAdvice` 端点保留（桩测还测它），页面不再调用；`METHODS` / `ENDPOINTS` 同步到 34 个。
+### gateway/method-unavailable 的两个修法（2026-11-26）
+
+- 现场：对话框里点发送，返回 `[gateway/method-unavailable] typert gateway: dsh-comfy-workbench/hubChat: active Service "dsh-comfy-workbench" has no callable method "hubChat"`。
+- 根因：新端点只加了「契约 `ENDPOINTS` + `api.js` 实现」，**忘了在 `lib/index.js` 的 Service 类上补 `hubChat(args)` 转发**。
+  typert 网关按服务对象派发，服务上没有这个方法就是这句错——`/v1/health` 里 build 显示 0.1.6/25039ed，说明宿主已经是新代码。
+- 修法一：`index.js` 补转发方法；`selftest-client` 加一条「每个 ENDPOINTS 都要在 index.js 有转发、在 api.js 有导出」的断言，这类漏写以后会被单测挡住。
+- 修法二（页面侧）：`bridge.call()` 只在 `method-unavailable` 这一种错误上退到同源 HTTP `/v1/call`。
+  这是网关 Plumbing 错误，请求没进业务代码，重试不会多跑一次出图/下载；其余业务错误照旧不换通道（出图重试就是两张图）。
+- 效果：宿主没重启时，页面刷新就能用（HTTP 路由直接调 `api[name]`）；重启后走回 Remote。
 ### 凭据存在哪、为什么
 
 `<profile>\.dsh-comfy\hub-credentials.json`，**不进 `config.json`**：`config({})` 返回全量键、
