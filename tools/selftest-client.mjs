@@ -69,11 +69,11 @@ check('写死的浅色底只剩 GIF 贴纸那几处', () => {
   assert(light.length <= 3, '还有别的写死浅色底：' + light.join(', '))
 })
 
-check('METHODS 与 typert ENDPOINTS 同序同集（35 个）', () => {
+check('METHODS 与 typert ENDPOINTS 同序同集（37 个）', () => {
   const start = source.indexOf('const METHODS = [')
   const end = source.indexOf(']', start)
   const methods = [...source.slice(start, end).matchAll(/'([A-Za-z]\w*)'/g)].map((m) => m[1])
-  assert(methods.length === 35, 'METHODS 条数 ' + methods.length)
+  assert(methods.length === 37, 'METHODS 条数 ' + methods.length)
   assert(methods.join(',') === ENDPOINTS.join(','), '顺序或集合不一致' + String.fromCharCode(10) + 'client: ' + methods.join(',') + String.fromCharCode(10) + 'host:   ' + ENDPOINTS.join(','))
 })
 
@@ -215,6 +215,11 @@ check('模型库：模型助手已下线，改自动翻译', () => {
   assert(source.includes('cleanLoraName'), '文件名没清洗成可翻的短语')
   assert(source.includes('cw-lora-en'), 'LoRA 原名小字样式缺')
   assert(source.includes("style: 'lora'"), 'LoRA 翻译没走文件名专用口吻')
+  // 触发词：宿主持久化 + 面板 chip 复制 + 改写带上 loras。
+  for (const token of ["call('hubTriggers'", "call('hubLookupTriggers'", 'triggerMap', 'cw-lora-trigger', 'copyTrigger', 'triggerWordsFor', 'lookupTriggers']) {
+    assert(source.includes(token), '缺 ' + token)
+  }
+  assert((source.match(/^\s+loras,$/gm) ?? []).length >= 2, '改写两次调用没都带上 loras')
   assert(source.includes('jobPercent'), '没有总进度百分比')
 })
 

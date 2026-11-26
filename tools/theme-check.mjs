@@ -135,7 +135,7 @@ const body = `
           <button class="cw-btn">完成</button>
         </div>
         <div class="cw-lora-list">
-          <div class="cw-lora-item on"><input type="checkbox" checked><span class="cw-lora-idx">1</span><span class="cw-lora-name"><span>深插 · anima</span><span class="cw-lora-en">deep_penetration_anima_v1.safetensors</span></span><input class="cw-input cw-lora-str" type="number" value="0.8"></div>
+          <div class="cw-lora-item on"><input type="checkbox" checked><span class="cw-lora-idx">1</span><span class="cw-lora-name"><span>深插 · anima</span><span class="cw-lora-en">deep_penetration_anima_v1.safetensors</span></span><button class="cw-lora-trigger" type="button"><span>deep penetration, v1</span><span class="ic">⧉</span></button><input class="cw-input cw-lora-str" type="number" value="0.8"></div>
           <div class="cw-lora-item on"><input type="checkbox" checked><span class="cw-lora-idx">2</span><span class="cw-lora-name">real-disgust-anima.safetensors</span><input class="cw-input cw-lora-str" type="number" value="0.8"></div>
           <div class="cw-lora-item"><input type="checkbox"><span class="cw-lora-idx off"></span><span class="cw-lora-name"><span>MOSS 图像 4 步蒸馏 v2.0</span><span class="cw-lora-en">moss_image_sft_4step_v2.0.safetensors</span></span><input class="cw-input cw-lora-str" type="number" value="1" disabled></div>
           <div class="cw-lora-item missing"><input type="checkbox"><span class="cw-lora-idx off"></span><span class="cw-lora-name">old_deleted_style_lora.safetensors</span><span class="cw-chip">盘上没有</span><input class="cw-input cw-lora-str" type="number" value="1" disabled></div>

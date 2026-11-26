@@ -1,5 +1,15 @@
 # ComfyUI 工作台（dsh-comfy-workbench）
 
+## 1.6.0（2026-11-27）
+
+- **LoRA 触发词**：`lib/triggers.js` 持久化「小写文件名 → trainedWords」，原子写到 `<profile>/.dsh-comfy/lora-triggers.json`。
+  - 下载时顺手记：`hubDownload` 成功后把 selection 里的 `trainedWords` 通过 `hubTriggers({ put })` 合并进库。
+  - 老文件回填：`hubLookupTriggers({ names })` 按文件名去 Civitai 搜，**文件名完全对得上**才记，否则进 `missed`（不猜）。
+  - 工台 LoRA 面板：有词 → 「词 ⧉」胶囊点击复制；没有 → 「查触发词」；面板头「补触发词」一次最多 8 个。
+- **改写认识触发词**：`rewritePlan` / `rewriteApply` 都带 `loraHints`（当前 loraSel + 本地触发词），
+  `loraLines()` 生成「不要写 <lora:...> 标记 / 触发词原样保留靠前 / 没触发词就别编」那几行。
+- 单测：rewrite 45（新增 `loraLines` 一条）、client 27（触发词 chip / 回填 / 改写带 loras）、hub 28。
+
 ## 1.5.0（2026-11-26）
 
 - **模型库 · Civitai 第四页**：大图网格、点开详情（简介 / 版本 / 文件勾选 / 目标目录 / 下载）、底模筛选含 `MOSS Image` 等新家族。

@@ -9,7 +9,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
-import { ANIMA_NEGATIVE, ANIMA_QUALITY, decideNeed, looksLikeRefusal, mergeNegative, parsePlanJson, parsePositive, rewriteApply, rewriteCancel, rewritePlan } from '../lib/rewrite.js'
+import { ANIMA_NEGATIVE, ANIMA_QUALITY, decideNeed, looksLikeRefusal, loraLines, mergeNegative, parsePlanJson, parsePositive, rewriteApply, rewriteCancel, rewritePlan } from '../lib/rewrite.js'
 import { extractContentScale, readGlobalPersona } from '../lib/persona.js'
 import { policyFor } from '../lib/workflowPolicy.js'
 import { readManifest } from '../lib/workflows.js'
@@ -505,6 +505,17 @@ await check('anima 画质词去重', async () => {
   assert(ANIMA_QUALITY.includes('bokeh'), '常量应含 bokeh')
 })
 
+await check('改写：当前 LoRA 的触发词进提示词', () => {
+  const lines = loraLines([
+    { name: 'anireal_moss_lora_v1.safetensors', strength: 0.8, words: ['anireal', 'moss style'] },
+    { name: 'no_trigger.safetensors', strength: 1, words: [] },
+  ])
+  const text = lines.join('\n')
+  assert(text.includes('不要写 <lora:...> 标记'), '没告诉模型别写 lora 标记')
+  assert(/anireal_moss_lora_v1\.safetensors@0\.8：anireal, moss style/.test(text), '触发词没原样带上：' + text)
+  assert(text.includes('（没有触发词，不要自己编）'), '没触发词的 LoRA 没标清楚')
+  assert(loraLines([]).length === 0, '空选择不该出这段')
+})
 await check('模型拒答 → rewrite-refused，原文不动', async () => {
   const { ctx } = makeCtx([
     textReply(JSON.stringify({ need: false, negative: '', negationFound: false, reason: 'x' })),

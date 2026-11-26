@@ -74,6 +74,10 @@ node tools/selftest-asset.mjs     # 8 项：动图路由
 - **封面**：页面只认同源 `/dsh-comfy/hub/cover?u=`，宿主取图再吐回去（渲染进程不保证放行 `image.civitai.com`）。
   本机直连 `image.civitai.com` 两条路都不通（投毒 DNS + hosts 劫持到 `127.0.0.1`），失败后自动退回
   `images.weserv.nl` 反代；10 分钟进程内缓存 + in-flight 合并挡重复请求。**首次一张要十来秒**，之后走缓存。
+- **触发词**：下载时把 Civitai 的 `trainedWords` 记到 `<profile>/.dsh-comfy/lora-triggers.json`；LoRA 下拉里每条带一个
+  「词 ⧉」小胶囊，点一下复制（多个词按逗号拼好）。没有记录的老 LoRA 显示「查触发词」，按文件名去 Civitai 回填
+  （面板头有「补触发词」一次查 8 个）。大模型改写两阶段都会把「当前 LoRA + 触发词」写进提示词，并要求
+  「不要写 `<lora:...>` 标记、触发词原样保留在靠前位置」。
 - **自动翻译**：结果里的英文名与详情简介走宿主 `hubTranslate` 批量翻成中文（同一句只翻一次，进程内缓存），
   中文名压在上面、英文留一行小字；详情里可切「看原文 / 看译文」。翻译走 `ctx.llm`，没配模型时自动停在英文，不报错。
   （模型助手对话框已下线，`hubChat` / `hubAdvice` 接口留着但页面不再调。）
