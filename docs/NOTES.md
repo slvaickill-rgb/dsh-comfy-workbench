@@ -350,6 +350,19 @@ ComfyUI 的 `samplers.py` 在 `cond_scale == 1` 时把 `uncond_` 置空，`cfg_r
 - `normalizeModel` / `normalizeVersion` 新增 `description`（`htmlToText()` 剥标签、留段落、4000 字上限）；
   页面只渲染纯文本，不做 HTML 注入。
 - 弹层卡片要 `box-sizing:border-box`：`width:min(940px,100%)` 加左右 padding，不加就会顶出一条横向滚动条（样张里发现的）。
+### 助手从「一次性建议」改成对话框（2026-11-26 晚）
+
+- 需求：模型站的 Agent 改成「辅助标签查找 + 辅助配置」的对话框。旧实现是一次性 `hubAdvice`：下完自动跑一次，
+  输出固定 JSON（兼容性 / 目录 / 权重），塞进右侧抽屉，不能追问。
+- 新接口 `hubChat({ messages, context })`：历史由页面带（宿主只留最近 8 条），事实只喂一次——
+  所选模型（名字 / 类型 / 作者 / 底模 / 简介 / 统计）、勾选文件（名字 / 类别 / baseModel / trainedWords / 大小）、
+  当前提示词、本机 checkpoints / loras / 26 类别、工作流槽数。
+- `hubAgent.js`：`SYSTEM_PROMPT_CHAT` 把回答范围锁死在「标签 + 配置」；`parseChat()` 取正文末尾那行 JSON
+  （`tags` / `targetDir` / `suggestedStrength`），解不出 JSON 就当纯文本，字段过白名单与 clamp。
+- 页面：抽屉删掉，换成整屏对话框——用户气泡右、助手左、标签 chip 点一下经 `onInsertPrompt` 拼进工作台输入框、
+  内置三句快捷问题、Enter 发送 / Shift+Enter 换行、错误红字挂在对应那条消息上。
+- 下完不再自动烧 token：`autoAdvice` 现在只负责「把问题填进输入框 + 打开对话框」。
+- `hubAdvice` 端点保留（桩测还测它），页面不再调用；`METHODS` / `ENDPOINTS` 同步到 34 个。
 ### 凭据存在哪、为什么
 
 `<profile>\.dsh-comfy\hub-credentials.json`，**不进 `config.json`**：`config({})` 返回全量键、

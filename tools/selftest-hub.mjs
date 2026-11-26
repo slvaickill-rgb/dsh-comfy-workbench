@@ -18,7 +18,7 @@ process.env.DSH_COMFY_NO_PROXY = '1'
 
 import { isApiHost, isCdnHost, isDownloadHost, isImageHost, parseRef, normalizeModel, categoryForType, pickDefaultFile, fetchJson, fetchCover, COVER_PROXIES } from '../lib/civitai.js'
 import { CredentialStore, HubDownloader, maskKey, safeFileName } from '../lib/hub.js'
-import { parseAdvice, fallbackAdvice, buildFacts } from '../lib/hubAgent.js'
+import { parseAdvice, fallbackAdvice, buildFacts, parseChat } from '../lib/hubAgent.js'
 
 const ROOT = path.join(os.tmpdir(), 'dsh-hub-selftest-' + String(process.pid))
 const STATE = path.join(ROOT, 'state')
@@ -554,6 +554,21 @@ await check('Agent：字段 clamp 与动作白名单', () => {
   assert(advice.suggestedStrength === 2, '权重没 clamp 到 2：' + advice.suggestedStrength)
   assert(advice.actions.join(',') === 'selectLora,refreshDirs', '动作没过滤：' + advice.actions.join(','))
   assert(advice.triggerWords.length === 2, '触发词没剔掉非字符串')
+})
+
+await check('Agent：对话框解析（正文 + 末尾 JSON）', () => {
+  const answer = parseChat('推荐权重 0.8，触发词用 abstract20painting2020style。\n{"tags":["abstract20painting2020style","painting"],"targetDir":"loras","suggestedStrength":0.85}')
+  assert(answer.text.includes('推荐权重 0.8'), '正文被吃掉了：' + answer.text)
+  assert(answer.tags.length === 2 && answer.tags[0] === 'abstract20painting2020style', 'tags 没解出来')
+  assert(answer.targetDir === 'loras', 'targetDir 没解出来：' + answer.targetDir)
+  assert(answer.suggestedStrength === 0.85, '权重没解出来：' + answer.suggestedStrength)
+  const plain = parseChat('我只会说人话。')
+  assert(plain.tags.length === 0 && plain.text === '我只会说人话。', '纯文本兜底不对')
+  const weird = parseChat('{"tags":["a"],"targetDir":"../evil","suggestedStrength":9}')
+  assert(weird.targetDir === null && weird.suggestedStrength === 2, '越界字段没被夹住')
+  let caught = null
+  try { parseChat('  ') } catch (error) { caught = error }
+  assert(coded(caught, 'hub-advice-invalid'), '空回复没报错')
 })
 
 await check('Agent：输出不是 JSON → hub-advice-invalid，降级有事实', () => {

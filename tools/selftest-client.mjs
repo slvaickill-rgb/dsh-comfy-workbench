@@ -69,11 +69,11 @@ check('写死的浅色底只剩 GIF 贴纸那几处', () => {
   assert(light.length <= 3, '还有别的写死浅色底：' + light.join(', '))
 })
 
-check('METHODS 与 typert ENDPOINTS 同序同集（33 个）', () => {
+check('METHODS 与 typert ENDPOINTS 同序同集（34 个）', () => {
   const start = source.indexOf('const METHODS = [')
   const end = source.indexOf(']', start)
   const methods = [...source.slice(start, end).matchAll(/'([A-Za-z]\w*)'/g)].map((m) => m[1])
-  assert(methods.length === 33, 'METHODS 条数 ' + methods.length)
+  assert(methods.length === 34, 'METHODS 条数 ' + methods.length)
   assert(methods.join(',') === ENDPOINTS.join(','), '顺序或集合不一致' + String.fromCharCode(10) + 'client: ' + methods.join(',') + String.fromCharCode(10) + 'host:   ' + ENDPOINTS.join(','))
 })
 
@@ -138,12 +138,14 @@ check('模型库：key 三态 + 记住本机 + 不回显', () => {
   assert(source.includes("call('hubKey', { key: '' })"), '清除没走空串')
 })
 
-check('模型库：右侧抽屉与四个一键动作', () => {
-  for (const token of ['Agent · 安装建议', '加入 LoRA 选择', '刷新目录', '填入会话草稿', '复制建议']) {
+check('模型库：助手改成标签 / 配置对话框', () => {
+  for (const token of ['模型助手 · 标签 / 配置', "call('hubChat'", 'cw-hub-chat-log', 'cw-hub-msg-tags', 'cw-hub-chat-input', 'onInsertPrompt']) {
     assert(source.includes(token), '缺 ' + token)
   }
-  assert(source.includes('cw-hub-drawer'), '没有抽屉组件')
-  assert(source.includes('requestAdvice'), '没有要建议的入口')
+  assert(!source.includes('Agent · 安装建议'), '旧的一次性建议抽屉还在')
+  assert(!source.includes("call('hubAdvice'"), '页面还在调 hubAdvice')
+  assert(source.includes('setChatMessages'), '没有对话状态')
+  assert(source.includes('已插入标签：'), '标签插不进输入框')
 })
 
 check('模型库：勾选 → 目标目录 → 下载', () => {
