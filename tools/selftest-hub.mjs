@@ -18,7 +18,7 @@ process.env.DSH_COMFY_NO_PROXY = '1'
 
 import { isApiHost, isCdnHost, isDownloadHost, isImageHost, parseRef, normalizeModel, categoryForType, pickDefaultFile, fetchJson, fetchCover, COVER_PROXIES } from '../lib/civitai.js'
 import { CredentialStore, HubDownloader, maskKey, safeFileName } from '../lib/hub.js'
-import { parseAdvice, fallbackAdvice, buildFacts, parseChat } from '../lib/hubAgent.js'
+import { parseAdvice, fallbackAdvice, buildFacts, parseChat, parseTranslations } from '../lib/hubAgent.js'
 
 const ROOT = path.join(os.tmpdir(), 'dsh-hub-selftest-' + String(process.pid))
 const STATE = path.join(ROOT, 'state')
@@ -596,6 +596,20 @@ await check('Agent：字段 clamp 与动作白名单', () => {
   assert(advice.suggestedStrength === 2, '权重没 clamp 到 2：' + advice.suggestedStrength)
   assert(advice.actions.join(',') === 'selectLora,refreshDirs', '动作没过滤：' + advice.actions.join(','))
   assert(advice.triggerWords.length === 2, '触发词没剔掉非字符串')
+})
+
+await check('翻译解析：JSON 数组 / 按行兜底 / 缺条补空', () => {
+  const json = parseTranslations('["女仆角色","黑色连衣裙"]', 2)
+  assert(json[0] === '女仆角色' && json[1] === '黑色连衣裙', 'JSON 数组没解出来：' + JSON.stringify(json))
+  const lines = parseTranslations('1. 风暴之剑\n2. 银发少女', 2)
+  assert(lines[0] === '风暴之剑' && lines[1] === '银发少女', '按行兜底没解出来：' + JSON.stringify(lines))
+  const short = parseTranslations('["只有一个"]', 2)
+  assert(short.length === 2 && short[1] === '', '缺条没补空串')
+  const fenced = parseTranslations('```json\n["代码块里的译文"]\n```', 1)
+  assert(fenced[0] === '代码块里的译文', '代码块没剥掉')
+  let caught = null
+  try { parseTranslations('   ', 1) } catch (error) { caught = error }
+  assert(coded(caught, 'hub-advice-invalid'), '空回复没报错')
 })
 
 await check('Agent：对话框解析（正文 + 末尾 JSON）', () => {

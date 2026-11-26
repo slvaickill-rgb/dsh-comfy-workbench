@@ -384,6 +384,18 @@ ComfyUI 的 `samplers.py` 在 `cond_scale == 1` 时把 `uncond_` 置空，`cfg_r
 - 宿主侧：`_downloadOne` 改成最多 3 次尝试；每次带 `Range: bytes=<已下字节>-` 续传（`openDownload` 新增 `headers` 透传，逐跳带 Range，只有 CDN 那跳丢 Authorization）；续传前把已有半截读回来喂 sha256；服务器不认 Range（回 200）就老实从头下。断线类错误才重试（ECONNRESET / ETIMEDOUT / EPIPE / socket hang up / aborted），业务错误（超限、哈希不符、同名）直接失败并删 `.part`。完成时 `note` 会写「断线重连 N 次后续传完成」。
 - 页面侧：下载到终态且真有 done 的文件时，自动 `onRefreshDirs()` 重扫一次目录（之前没有任何地方刷新，页面里的 `dirs` 一直是打开页面时那份）；LoRA 下拉面板头里也加了「刷新」按钮。
 - 顺带说明：那一次是 83.7 MB 的文件、代理在 55.9 MB 时断的，不是保险丝（2 GiB 上限）也不是 SHA。
+### 助手下线、改自动翻译 + 下载进度条（2026-11-26 晚）
+
+- 主人嫌一屏英文难受，要「取消模型助手、改成自动翻译」，并要下载给进度条。
+- 下线：`HubPane` 里助手的状态、`chatContext` / `openChat` / `sendChat`、对话框、底栏与详情里的「问助手」全删；
+  对应的 `.cw-hub-chat*` / `.cw-hub-msg*` / `.cw-hub-tag` 样式一起清掉（样张同步换掉）。宿主端点 `hubChat` / `hubAdvice` 保留但没人调，
+  以后要么复用要么一起删。
+- 翻译：新端点 `hubTranslate({ texts })`——最多 24 段、每段 1500 字，同一句命中进程内缓存就不再花钱；
+  `SYSTEM_PROMPT_TRANSLATE` 要求只输出 JSON 字符串数组，`parseTranslations()` 解不出数组就按行拆（去编号），短了补空串。
+  页面：搜索结果变化时把未见过的英文名成批翻（`autoTranslate` 可关），中文名为主、英文小字作副标；
+  详情简介打开时翻一次并记住，「看原文 / 看译文」随时切。没配大模型就老实显示英文，不弹错。
+- 进度：`job` 卡片有总条 + 每个文件的百分比与细条；底栏加一条常驻的 `cw-hub-foot-bar`，显示「下载中 · 67%」。
+- 测试：client 25 项（改成断言「助手残留为 0 / 有 hubTranslate / 有两条进度条」）、hub 28 项（新增翻译解析 5 条），其余照旧。版本 0.3.0。
 ### 凭据存在哪、为什么
 
 `<profile>\.dsh-comfy\hub-credentials.json`，**不进 `config.json`**：`config({})` 返回全量键、

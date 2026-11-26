@@ -213,45 +213,45 @@ const body = `
       </div>
     </div>
     <div class="cw-card">
-      <div class="cw-card-head"><h3 class="cw-card-title">助手对话框 · 标签 / 配置</h3></div>
-      <div class="cw-hub-chat" style="position:static;inset:auto;background:none;padding:0;display:block">
-        <div class="cw-hub-chat-card" style="max-height:none">
-          <div class="cw-card-head">
-            <h3 class="cw-card-title">模型助手 · 标签 / 配置</h3>
-            <span class="cw-chip">Abstract Painting · Style [LoRA]</span>
-            <span class="cw-spacer"></span>
-            <button class="cw-btn">清空</button>
-            <button class="cw-btn">关闭</button>
+      <div class="cw-card-head"><h3 class="cw-card-title">自动翻译后的卡片（中文压上面，英文留小字）</h3></div>
+      <div class="cw-hub-grid">
+        <button class="cw-hub-tile" type="button">
+          <div class="cw-hub-tile-cover" style="background:linear-gradient(160deg,#2c3e56,#4a3a63)"></div>
+          <div class="cw-hub-tile-body">
+            <div class="cw-hub-tile-name">乳尻 / 胸部挤压</div>
+            <div class="cw-hub-tile-en">乳尻/breasts squeeze</div>
+            <div class="cw-hub-tile-meta"><span>LoRA</span><span>MOSS 图像</span><span>↓ 14,217</span></div>
           </div>
-          <div class="cw-hub-chat-log">
-            <div class="cw-hub-msg user"><div class="cw-hub-msg-text">帮我找这个模型的触发词和常用标签</div></div>
-            <div class="cw-hub-msg">
-              <div class="cw-hub-msg-text">触发词就是作者挂在版本上的那串，先抄它；通用画风词只补质感：
-1. abstract20painting2020style —— 必带，0.7–0.85
-2. oil painting, thick brush stroke —— 通用词，压到 0.5 以下做质感
-负面建议：photo, 3d render, smooth shading</div>
-              <div class="cw-hub-msg-tags">
-                <button class="cw-hub-tag">+abstract20painting2020style</button>
-                <button class="cw-hub-tag">+oil painting</button>
-                <button class="cw-hub-tag">+thick brush stroke</button>
-                <span class="cw-hub-meta">权重 0.8</span>
-                <span class="cw-hub-meta">目录 LoRA</span>
-              </div>
-              <div class="cw-hub-note">deepseek · DeepSeek-V4.1-Flash</div>
-            </div>
-            <div class="cw-hub-msg user"><div class="cw-hub-msg-text">这套文件该放哪、权重给多少</div></div>
-            <div class="cw-hub-msg error"><div class="cw-hub-msg-text">模型没接上：没有可用的 provider（在宿主里挑一个模型再试）</div></div>
+        </button>
+        <button class="cw-hub-tile" type="button">
+          <div class="cw-hub-tile-cover" style="background:linear-gradient(160deg,#4a2f43,#6b3a3a)"></div>
+          <div class="cw-hub-tile-body">
+            <div class="cw-hub-tile-name">深水鲸鱼女仆</div>
+            <div class="cw-hub-tile-en">Deepseek Whale Girl Maid</div>
+            <div class="cw-hub-tile-meta"><span>LoRA</span><span>Anima</span><span>↓ 3,120</span></div>
           </div>
-          <div class="cw-hub-quick">
-            <button class="cw-hub-tag">帮我找这个模型的触发词和常用标签</button>
-            <button class="cw-hub-tag">这套文件该放哪、权重给多少</button>
-            <button class="cw-hub-tag">和本机底模兼容吗，占工作流第几个槽</button>
-          </div>
-          <div class="cw-hub-chat-input">
-            <textarea placeholder="问标签 / 问配置。Enter 发送，Shift+Enter 换行。"></textarea>
-            <button class="cw-btn primary">发送</button>
-          </div>
-        </div>
+        </button>
+      </div>
+    </div>
+
+    <div class="cw-card">
+      <div class="cw-card-head">
+        <h3 class="cw-card-title">下载进度</h3>
+        <span class="cw-chip">下载中</span>
+        <span class="cw-spacer"></span>
+        <span class="cw-hub-meta">56.0 MB / 83.7 MB · 67%</span>
+      </div>
+      <div class="cw-hub-progress"><i style="width:67%"></i></div>
+      <div class="cw-hub-file"><span class="nm">PenisLoraMossNoTriggerwords.safetensors</span><span>下载中</span><span>56.0 MB / 83.7 MB</span><span>67%</span>
+        <div class="cw-hub-progress cw-hub-item-bar"><i style="width:67%"></i></div></div>
+      <div class="cw-hub-file"><span class="nm">queued.safetensors</span><span>排队中</span><span>0 B / 12.0 MB</span><span>0%</span>
+        <div class="cw-hub-progress cw-hub-item-bar"><i style="width:0%"></i></div></div>
+      <div class="cw-hub-foot" style="position:static">
+        <span>已选 2 个 · 合计 95.7 MB</span>
+        <div class="cw-hub-progress cw-hub-foot-bar"><i style="width:67%"></i></div>
+        <span class="cw-hub-meta">下载中 · 67%</span>
+        <span class="cw-spacer"></span>
+        <button class="cw-btn primary">下载选中</button>
       </div>
     </div>
   </div>
