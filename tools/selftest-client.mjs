@@ -69,11 +69,11 @@ check('写死的浅色底只剩 GIF 贴纸那几处', () => {
   assert(light.length <= 3, '还有别的写死浅色底：' + light.join(', '))
 })
 
-check('METHODS 与 typert ENDPOINTS 同序同集（37 个）', () => {
+check('METHODS 与 typert ENDPOINTS 同序同集（38 个）', () => {
   const start = source.indexOf('const METHODS = [')
   const end = source.indexOf(']', start)
   const methods = [...source.slice(start, end).matchAll(/'([A-Za-z]\w*)'/g)].map((m) => m[1])
-  assert(methods.length === 37, 'METHODS 条数 ' + methods.length)
+  assert(methods.length === 38, 'METHODS 条数 ' + methods.length)
   assert(methods.join(',') === ENDPOINTS.join(','), '顺序或集合不一致' + String.fromCharCode(10) + 'client: ' + methods.join(',') + String.fromCharCode(10) + 'host:   ' + ENDPOINTS.join(','))
 })
 
@@ -252,7 +252,9 @@ check('模型库：已下载标记 + 只看已下载', () => {
     assert(source.includes(token), '缺 ' + token)
   }
   assert(source.includes('installedCount'), '结果头没显示已下载数量')
-  assert(source.includes('cw-hub-local'), '只看已下载时没列本机清单')
+  for (const token of ['hubLocalFiles', 'localFiles', 'openLocal', '本机已装']) {
+    assert(source.includes(token), '缺 ' + token)
+  }
 })
 
 check('模型库：底模下拉含 MOSS，并会记住结果里的新底模', () => {

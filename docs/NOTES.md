@@ -1,5 +1,15 @@
 # ComfyUI 工作台（dsh-comfy-workbench）
 
+## 1.8.0（2026-11-27）
+
+- 「只看已下载」原来只是一句文字清单，主人嫌不直观，改成**本机图库**：本地文件按 `.cw-hub-grid` 大图卡片排开。
+- 新端点 `hubLocalFiles({ refresh, lookup })`：扫 dirs → 读 `local-catalog.json` 缓存 → 对没缓存的按文件名去 Civitai 搜
+  （**文件名完全一致**才算），每次最多查 `lookup` 个（默认 8），返回 `remaining` 给页面循环；查不到也写空壳，7 天内不再打。
+- 元数据落地 `lib/localCatalog.js`（原子写）：modelId / 模型名 / 类型 / versionId / baseModel / 封面（走 `coverUrl` 同源反代）/ trainedWords。
+  触发词顺手 merge 进 `lora-triggers.json`，本机图库的「词 ⧉」胶囊和工台共用一份。
+- 点卡片：有 modelId 就 `hubResolve({ modelId })` 打开详情弹层；没有就只是展示。
+- 过程中又踩了一次跨组件：`openLocal` 用到了 `setResult` / `setDetailId`，一开始误放在 Page 里（会整页黑）——挪回 HubPane，作用域单测也拦住了。
+
 ## 1.7.2（2026-11-27）
 
 - 主人开了「只看已下载」却看到 0：当时宿主还是 1.6.0（`markInstalled` 没生效），而且过滤是逐页的——那一页的 12 个 MOSS 模型里只有一个是他本机有的。
