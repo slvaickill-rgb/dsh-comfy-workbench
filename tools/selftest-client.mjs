@@ -158,6 +158,28 @@ check('模型库：key 三态 + 记住本机 + 不回显', () => {
   assert(source.includes("call('hubKey', { key: '' })"), '清除没走空串')
 })
 
+check('组件作用域：setX 必须在同一个组件里声明（黑屏回归二）', () => {
+  // 踩过两回：批量删代码把 paste/pollRef 删了；又把 zhDesc 删了、zhLoras 声明错组件。
+  // 这里按组件切段，逐个检查「用到的 setter」是否在段内声明过。
+  const lineList = source.split(/\r?\n/)
+  const starts = []
+  lineList.forEach((line, index) => {
+    const hit = /^    function ([A-Za-z0-9_$]+)\(/.exec(line)
+    if (hit) starts.push({ name: hit[1], line: index })
+  })
+  const allow = new Set(['setInterval', 'setTimeout', 'setAttribute', 'setImmediate'])
+  const problems = []
+  for (let index = 0; index < starts.length; index += 1) {
+    const end = index + 1 < starts.length ? starts[index + 1].line : lineList.length
+    const body = lineList.slice(starts[index].line, end).join('\n')
+    const declared = new Set([...body.matchAll(/\bconst \[[^,\]]+,\s*([A-Za-z0-9_$]+)\]/g)].map((m) => m[1]))
+    for (const m of body.matchAll(/\bconst (set[A-Za-z0-9_$]+) =/g)) declared.add(m[1])
+    for (const m of body.matchAll(/\b(set[A-Z][A-Za-z0-9_$]*)\(/g)) {
+      if (!declared.has(m[1]) && !allow.has(m[1])) problems.push(starts[index].name + ' → ' + m[1])
+    }
+  }
+  assert(problems.length === 0, '跨组件用了没声明的 setter：' + [...new Set(problems)].join('、'))
+})
 check('模型库：HubPane 自己用到的基础状态都有声明（黑屏回归）', () => {
   // 踩过：批量删助手代码时把 paste / pollRef 的声明一起删了，进模型库整页黑屏
   // （React 渲染时 ReferenceError）。这里只钉最容易漏的那几个。
@@ -165,6 +187,13 @@ check('模型库：HubPane 自己用到的基础状态都有声明（黑屏回�
     assert(source.includes(token), 'HubPane 缺声明：' + token)
   }
   assert(source.includes('pollRef.current = setInterval'), '下载轮询还在用 pollRef')
+  // 踩过第二回：zhLoras 声明在 HubPane、却被 Page 的 LoRA 面板用，整页黑屏。
+  const pageAt = source.indexOf('function Page()')
+  const hubAt = source.indexOf('function HubPane(')
+  const zhAt = source.indexOf('const [zhLoras, setZhLoras] = useState({})')
+  assert(zhAt > pageAt && pageAt > 0, 'zhLoras 没声明在 Page 里（Page 起点 ' + pageAt + '，声明 ' + zhAt + '）')
+  assert(source.indexOf('const [zhLoras, setZhLoras] = useState({})', zhAt + 1) === -1, 'zhLoras 重复声明')
+  assert(hubAt > 0 && pageAt > hubAt, '组件顺序变了，检查这条断言')
 })
 
 check('模型库：模型助手已下线，改自动翻译', () => {
