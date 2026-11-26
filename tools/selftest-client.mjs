@@ -258,6 +258,10 @@ check('LoRA 多选器：勾选顺序写进槽位', () => {
   assert(source.includes('loraPopRef'), '下拉没挂锚点')
   assert(source.includes("event.key === 'Escape'"), 'Esc 收不起下拉')
   assert(source.includes('HUB_BASE_MODEL_LABELS'), '底模下拉没汉化标签')
+  // 下完要自动重扫目录，不然新下的 LoRA 不进选择菜单。
+  assert(source.includes('refreshTokenRef'), '下完没自动刷新目录')
+  assert(source.includes('onRefreshDirs()'), '没触发目录刷新')
+  assert(source.includes("'刷新'"), 'LoRA 面板里没有手动刷新')
 })
 
 console.log('')

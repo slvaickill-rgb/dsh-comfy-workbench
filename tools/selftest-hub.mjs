@@ -111,6 +111,33 @@ globalThis.fetch = async function stubFetch(input, init = {}) {
     const key = parsed.pathname
     const payload = payloads.get(key)
     if (payload === undefined) return new Response('not found', { status: 404 })
+    // 续传桩：v77 第一次给 4 字节就断线，第二次按 Range 回 206 + 剩下的。
+    if (key === '/models/v77.safetensors') {
+      const range = String(init.headers?.range ?? init.headers?.Range ?? '')
+      if (range.startsWith('bytes=')) {
+        const start = Number(range.slice(6).split('-')[0]) || 0
+        const rest = payload.subarray(start)
+        return new Response(rest, {
+          status: 206,
+          headers: {
+            'content-type': 'application/octet-stream',
+            'content-length': String(rest.length),
+            'content-range': 'bytes ' + String(start) + '-' + String(payload.length - 1) + '/' + String(payload.length),
+          },
+        })
+      }
+      const head = new Uint8Array(payload.subarray(0, 4))
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(head)
+          setTimeout(() => controller.error(Object.assign(new Error('aborted'), { code: 'ECONNRESET' })), 0)
+        },
+      })
+      return new Response(stream, {
+        status: 200,
+        headers: { 'content-type': 'application/octet-stream', 'content-length': String(payload.length) },
+      })
+    }
     return bytes(payload)
   }
 
@@ -403,6 +430,21 @@ await check('下载：SHA256 命中 → rename 成正式名', async () => {
   assert(fs.readFileSync(file).length === BODY.length, '字节数不对')
   assert(finished.items[0].sha256Ok === true, 'sha256Ok 不是 true')
   assert(fs.readdirSync(LORAS).some((name) => name.endsWith('.part')) === false, '留下了 .part')
+})
+
+await check('下载：断线 → 带 Range 续传一次就完成', async () => {
+  const body = Buffer.from('0123456789', 'utf8')
+  payloads.set('/models/v77.safetensors', body)
+  const digest = createHash('sha256').update(body).digest('hex')
+  const { downloader } = makeJob([{ versionId: 77, name: 'resume.safetensors', targetCategory: 'loras', sizeBytes: body.length, sha256: digest }])
+  const finished = await waitJob(downloader, 'tok-1', 15000)
+  assert(finished.state === 'done', '续传没完成：' + finished.state + ' ' + finished.note + ' ' + JSON.stringify(finished.items[0]?.error))
+  const file = path.join(LORAS, 'resume.safetensors')
+  assert(fs.existsSync(file), '续传后没有正式文件')
+  assert(fs.readFileSync(file).equals(body), '续传后内容不对')
+  assert(fs.readdirSync(LORAS).some((name) => name.endsWith('.part')) === false, '续传后留下 .part')
+  assert(String(finished.items[0].note ?? '').includes('断线重连'), '没记断线重连：' + finished.items[0].note)
+  assert(calls.some((call) => String(call.headers?.range ?? '').startsWith('bytes=')), '第二次请求没带 Range')
 })
 
 await check('下载：SHA256 不匹配 → 删 .part、不留半截模型', async () => {
