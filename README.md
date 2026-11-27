@@ -52,7 +52,7 @@ node tools/install.mjs     # 建联接 + 登记 profile（幂等）
 
 ## 安装 / 在线更新
 
-**主路：npm**（宿主用 `pnpm view` 查版本表，所以 npm 上有新版时插件页会出现「更新」）
+**主路：npm**
 
 ```bash
 npm i dsh-comfy-workbench
@@ -60,6 +60,10 @@ npm i dsh-comfy-workbench
 ```
 
 包地址：https://www.npmjs.com/package/dsh-comfy-workbench
+
+装法（DSH 里）：**插件 → 添加插件 → 包名或地址填 `dsh-comfy-workbench` → 安装 → 重启 DSH**。
+
+> 第三方插件**没有一键更新**（宿主文案：「其他插件请先卸载再安装新版」）。发新版后：插件页卸载 → 同一个包名再装一次 → 重启。
 
 **备用：插件市场索引**（不用 npm、或 npm 装不上时）
 
