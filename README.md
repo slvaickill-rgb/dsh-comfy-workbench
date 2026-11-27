@@ -50,6 +50,18 @@ node tools/install.mjs     # 建联接 + 登记 profile（幂等）
 出图要四个权重（MOSS 底模 / 文本编码器 / VAE / 4 步 LoRA，共约 12 GB），下载地址、放哪个目录、SHA-256
 都写在 **[SETUP.md](SETUP.md)**；换机器、填 `config.json`、故障速查也在那份里。
 
+## 在线更新
+
+别的主机不用拷目录，把这份索引加进「插件市场索引源」就行：
+
+```
+https://raw.githubusercontent.com/slvaickill-rgb/dsh-comfy-workbench/main/plugin-index.json
+```
+
+索引是仓库根目录的 `plugin-index.json`（DSH format 1），每个版本钉死一个 git commit。
+宿主对本地/私有包不查 npm，所以「有没有更新」只能靠这份索引——不填它，就永远显示当前版本、没有更新标识。
+
+维护者发版：改 `package.json` 的 version → commit → `node tools/make-index.mjs` → `node tools/selftest-index.mjs` → 提交索引并 push。
 ## 快速验证
 
 ```bash

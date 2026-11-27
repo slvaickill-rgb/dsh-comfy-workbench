@@ -1,8 +1,20 @@
 {
   "name": "dsh-comfy-workbench",
-  "version": "1.8.0",
-  "private": true,
+  "version": "1.9.0",
   "type": "module",
+  "keywords": ["dsh", "dsh-plugin", "comfyui", "image-generation", "stable-diffusion", "lora"],
+  "homepage": "https://github.com/slvaickill-rgb/dsh-comfy-workbench#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/slvaickill-rgb/dsh-comfy-workbench.git"
+  },
+  "bugs": {
+    "url": "https://github.com/slvaickill-rgb/dsh-comfy-workbench/issues"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
   "description": "ComfyUI workbench panel for DeepSeek Harness: sidebar entry, model/LoRA directory probing, LLM prompt rewriting, workspace-bound text input, single-image generation.",
   "icon": "./assets/icon.svg",
   "license": "MIT",
@@ -21,7 +33,10 @@
     "assets/icon.svg",
     "cordis.patch.yml",
     "README.md",
-    "SETUP.md"
+    "SETUP.md",
+    "plugin-index.json",
+    "dsh-plugin.json",
+    "tools/doctor.mjs"
   ],
   "scripts": {
     "import-workflows": "node tools/import-workflows.mjs",

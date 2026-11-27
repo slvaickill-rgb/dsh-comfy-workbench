@@ -32,6 +32,37 @@ node tools/install.mjs
 curl http://127.0.0.1:61609/dsh-comfy/v1/health   # 端口换成你 DSH Web 的实际端口
 ```
 
+## 1.5 在线更新（别的机器不用拷目录）
+
+插件市场可以加一份**索引源**，本仓库根目录的 `plugin-index.json` 就是（DSH 索引 format 1）：
+
+```
+https://raw.githubusercontent.com/slvaickill-rgb/dsh-comfy-workbench/main/plugin-index.json
+```
+
+在 DSH 的**设置 → 插件市场 → 索引源**里加上这一行（等价于 `plugin_market.indexes` 配置项），
+之后在插件市场里就能直接装/看到新版本。每个版本在索引里**钉死一个 git commit**，
+装出来是确定的快照，不受分支后续提交影响。
+
+> 为什么不用 npm：宿主对「已安装 bundle 有没有新版本」走的是 `pnpm view <name> versions time dist-tags`；
+> 本插件是 `private: true` 的本地包，npm 上查不到，所以永远没有「更新」标记。索引源这条路不依赖 npm。
+
+发新版本（维护者）：
+
+```bash
+# 1) 改 package.json 的 version
+git commit -am "release: x.y.z"
+# 2) 把版本 + 这次提交钉进索引
+node tools/make-index.mjs
+node tools/selftest-index.mjs
+# 3) 提交索引并推送
+git commit -am "chore(release): 索引指向 x.y.z"
+git push
+```
+
+`selftest-index.mjs` 会校验：format=1、title 含 en、name 与 package.json 一致、版本严格降序、
+commit 是 40 位小写 hex、`engines.dsh` 与 package.json 一致、**最新版本号 = package.json 的 version**。
+忘了跑 `make-index` 会在这里直接炸出来。
 ## 2. 装 ComfyUI
 
 两条路，选一条：
