@@ -22,6 +22,14 @@
 | **放大 / 预览** | ESRGAN ×2 / ×4；生成过程逐步预览（latent2rgb / taesd） |
 | **模型库（Civitai）** | 第四页：按 Civitai 公开 API 搜 LoRA / 底模 / VAE，勾选 → 下到 26 个类别目录之一，SHA256 校验；英文名与简介自动翻中文（可关）；下载有总进度 + 每文件进度条 |
 
+## 前端（样式 v1.7）
+
+界面按 `DSH-ComfyUI工作台-Web前端重构方案书.md` 重做过：CSS 仍内联在 `lib/client.js` 单块里，但拆成 §A token / §B base / §C component / §D motion / §E responsive / §F fallback 六段（222 → 468 行）。
+
+- **主题跟随靠宿主变量**：所有颜色走 `var(--dsw-alias-*, var(--cw-fallback-*))`，宿主换肤自动跟；脱离宿主时落兜底纸感（`@media(prefers-color-scheme:dark)` 只切兜底，不覆盖宿主）。
+- **尺寸用容器查询**：面板拉窄 ≠ 窗口变窄，`@container` 四档（1279 / 1023 / 767 / 479）；< 480px 顶部标签让位给底部 tab bar，LoRA 面板变底部 sheet，灯箱与详情整屏。
+- **动效 10 类**：入场 stagger / 标签指示条 / hover / 按钮 / 骨架 / 进度 / 抽屉 / 灯箱 / toast / NSFW 化开；`prefers-reduced-motion` 全量降级（限 `.cw-root` 作用域）。
+- **自检**：`node tools/selftest-client.mjs`（34 项）、`node tools/theme-check.mjs`（2 主题 × 5 尺寸样张）、`node tools/visual-check.mjs`（无头 Chrome 量尺寸，63 项）。
 ## 三条设计取舍
 
 1. **插件不搬权重，只探盘。** 每次现场读 ComfyUI 的 `extra_model_paths.yaml`、`/object_info`、`models/`，

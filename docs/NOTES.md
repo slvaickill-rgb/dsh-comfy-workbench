@@ -1,5 +1,27 @@
 # ComfyUI 工作台（dsh-comfy-workbench）
 
+## 前端重构（样式 v1.7，2026-11-27）
+
+按 `DSH-ComfyUI工作台-Web前端重构方案书.md`（v0.1）实施，**只改呈现层**：38 个 Typert 方法、37 条 HTTP 路由分支、35 个配置键、`isLoopback()`、后端其余 27 个 lib 文件全部没动。
+
+- **CSS 222 行 → 468 行，六段结构**：§A token / §B base / §C component / §D motion / §E responsive / §F fallback。组件区只写 `var(--cw-*)`；`#hex` 与 `rgb()` 只剩 §A 的变量定义值 + 三类豁免（贴纸白底 3 处、图片白字走 `--cw-on-image`、毛玻璃走 `--cw-frost-*`）。31 处硬编码色清零（`#3fa45b` / `#d9534f` / `rgba(0,0,0,.38…72)` 那批）。
+- **主题跟随是加固不是重做**：颜色一律 `var(--dsw-alias-*, var(--cw-fallback-*))`，三层面一次 `var()` 完成；`@media(prefers-color-scheme:dark)` **只切 `--cw-fallback-*`**，绝不覆盖宿主变量——宿主锁深色而 OS 浅色时两边不打架。
+- **容器查询为主**：`.cw-root{container-type:inline-size}` + `@container` 四档（1279 / 1023 / 767 / 479）。面板宽度 ≠ 视口宽度，原来那 4 条 `max-width` 会让「抽屉已拍平、输入区还两列」错配。`@supports not (container-type)` 留 1024 / 480 两档兜底。
+- **动效 10 类 + 全量降级**：`cw-rise`（卡片入场，`--cw-i` 40ms 递增、上限 8）、标签指示条、hover、按钮 `:active`、骨架 `cw-shimmer`、进度 `cw-indeterminate`、抽屉 `cw-pop` / `cw-slide-right`、灯箱 `cw-fade` + `cw-pop`、toast `cw-pop`、NSFW 化开与思考点。9 个 keyframes，不设无限循环（除 indeterminate 与思考点），不加 `will-change`。
+  - 降级限 `.cw-root` 作用域（不是全局 `*`）；`prefers-reduced-motion` 与手动 `data-cw-motion="reduce"` 同效。开关由 `client.js` 读 `matchMedia` 写到 `<html>`，**不新增配置键、不进 `DEFAULT_STATE`**；卸载时 `releaseCss()` 撤监听、摘属性、移 `<style>`。
+- **窄屏形态**：顶部标签改横滑；容器 < 480px 时让位给底部 tab bar（`.cw-tabbar`，与顶栏共用 `tabItem()` 同一份 `tab` 状态，**不是第五个标签**）；`.cw-lora-pop` 变底部 sheet、灯箱与详情弹层整屏、`env(safe-area-inset-bottom)` 兜底栏。
+- **清晰度**：字号阶梯 18 / 14 / 13 / 11、4px 间距基数、三级层级（卡片描边 → 卡片内分隔线 → 分组标题）、三态组件 `.cw-state`（空 / 骨架 / 错误）、焦点环统一 `:focus-visible`（用 label-primary，不用会被解析成白色的 brand-primary）、`(pointer:coarse)` 下命中区 44px。
+- **测试**：
+  - `tools/selftest-client.mjs` 27 → **34 项**：新增 token / 断点、四类豁免色计数、keyframes ≥ 9、`data-cw-motion`、标签 / 底栏 / 三态节点、深色兜底不动宿主变量。契约断言仍是 **38/38/38** 同序同集。
+  - `tools/theme-check.mjs` 重写：样张从 1 张扩成 **2 主题 × 5 尺寸 = 10 张 + 1 张兜底**；新增对比度断言（正文 / 次要字 ≥ 4.5:1、状态色 ≥ 3:1）与四类豁免色断言；导出 `buildHtml` / `SIZES` / `THEMES` 给 visual-check 复用（同一份样张，不重复维护两套 HTML）。
+  - **新增 `tools/visual-check.mjs`**：无头 Chrome `--dump-dom` 读页内探针（**不装 puppeteer、不连 CDP**），五尺寸 × 双主题 **63 项断言**：不横向溢出、卡片不越界、面板宽度 = 目标宽度、主按钮对比度 ≥ 4.5、<480 时标签让位且内容不被底栏压住、`prefers-reduced-motion` 动画归零、`pointer:coarse` 命中区 ≥ 44px、抽掉全部 `--dsw-alias-*` 后不白屏；顺带出 10 张截图。
+  - 踩坑记录：Chrome 在 Windows 上有 ~512px 最小窗口宽，`--window-size` 压不到 390 —— 窄档改成把 `body` 宽度钉死，容器查询量到的就是面板宽度（这本来也更接近真实面板）。`pointer:coarse` 要用 `--blink-settings=primaryPointerType=2,availablePointerTypes=2`，`--touch-events=enabled` 不生效。
+- **回归（21:00）**：`.cw-tabs` 一加 `overflow-x:auto;overflow-y:hidden`，它的自动最小尺寸就被 `overflow` 算成 0，面板一矮就被 flex 挤成一条缝——真机上「上面的选项全被挡住」就是这个，不是 z-index。改法：头部 / 标签 / 底栏一律 `flex:0 0 auto`，`.cw-tabs` 再补 `min-height:36px`。
+  顺带补上测量缺口：原来 10 张样张全是 `height:auto`（文档自己滚），**测不出 flex 挤压**；现在 `buildHtml` 支持 `bounded: true`（`height:100%`，body 自己滚），visual-check 加三条固定高度断言（1024 / 480 / 390×854）。
+- **参数区改版（21:05）**：环境卡那四行（工作流 / 底模 / 尺寸 / 步数 / 大模型）原来是 `.cw-grid`（`auto-fit minmax(150px,1fr)`）里塞 `.cw-row`（flex + wrap）。格子一窄，`flex-wrap` 就把**控件甩到第二行**，标签孤零零留在上面——面板越宽格子越多越窄，反而更难看。
+  改成 `.cw-fields` + `.cw-field`：`display:grid;grid-template-columns:max-content minmax(0,1fr)`，标签只占自己那点宽度、控件吃掉剩下的，**一行永远不换行**；控件 `width:100%;max-width:none`。尺寸用 `.cw-field-size`（标签 / 宽 / × / 高 四列），步数用 `.cw-field-steps`（标签 / 步数 / LoRA 徽标 三列）。窄到 320 也是「标签在左、框在右」，不再上下错位。
+  断言：visual-check 新增「标签与控件永远同一行」——1024 与 480 两档逐个 `.cw-field` 比标签与控件的中线，偏差 >14px 就报错；样本里也换成了新的 `.cw-fields` 结构。
+- **真机验收还差三步**（要人点）：① 重启 DSH 走一遍四个标签页；② 设置里主题设「跟随系统」再切 Windows 深浅，看背景 / 文字 / 描边跟着换且主按钮不消失；③ 窗口拖到最窄（~320px）确认无横向滚动、底栏可用、LoRA 面板变底部 sheet。
 ## 1.8.0（2026-11-27）
 
 - 「只看已下载」原来只是一句文字清单，主人嫌不直观，改成**本机图库**：本地文件按 `.cw-hub-grid` 大图卡片排开。
@@ -753,4 +775,14 @@ node -e "import('file:///C:/DSH/Projects/dsh-comfy-workbench/lib/dirs.js').then(
 - 顶掉默认槽时页脚点名「替掉 X」，并提示蒸馏加速 LoRA（moss 四步那份）也占这类槽，换掉加速档就失效。
 - 传参走已有通道 `generate({ loras: [{ name, strength }] })`，宿主按顺序写 `lora_name` / `strength_model` / `strength_clip`（`lib/comfy.js` 原逻辑，没动）。选择随出图写进配置 `state.loras`，刷新页面还在；盘上已经删掉的条目留在表里标「盘上没有」。
 - `node tools/selftest-client.mjs` 加了一项：选择状态、勾选处理、传参、换工作流清空、CSS 类都在。
+
+## LoRA 不再受「槽位」限制（2026-11-27 晚）
+
+- 现场：用「moss · 标准」勾了 `Moss-nai5-其三.safetensors`、触发词也贴进了提示词，出图毫无变化。查 ComfyUI `/history`：提交的那张图只有 11 个节点、`loras []`，一个 `LoraLoader` 都没有。`moss-standard` 是「底模直出」官方原档（`workflows/index.json` 里 `loras: []`），模型链 `UNETLoader → ModelSamplingAuraFlow → SkipLayerGuidanceDiTSimple → KSampler` 没有槽；老逻辑只覆盖已有槽，于是勾了等于只往提示词里贴了一串字。
+- 改法：`lib/comfy.js` 的 `patchWorkflow` 不再把槽数当上限。① `loraChainOrder()` 顺着 `model` 连线量每个自带 `LoraLoader*` 到「离底模几跳」，按这条链排序（中间夹着 `ModelSamplingAuraFlow` / `SkipLayerGuidance` 也能认，anime-switch 就是）；② 勾选的先按链顺序填自带槽；③ 槽不够 / 一个槽都没有的，`insertLoraChain()` 在链尾（没链就接 `UNETLoader`/`UnetLoaderGGUF`/`CheckpointLoaderSimple` 的 0 号输出）现串 `LoraLoaderModelOnly`，再把原来吃这段 MODEL 的输入端改接到新链尾。CLIP / VAE 这类非 0 号接线不动；空名字的条目直接过滤掉。挂不上（认不出底模 loader、或那个输出没人吃）才报 `未写入`，不静默吞。
+- 客户端：文案去掉「槽数上限」的说法——页脚改成「槽1 … 槽2 … 现串1 …」，chip 显示 `N 槽 + 现串 M`，选择序号提示分「占第 N 个自带槽」/「现串第 N 个（链尾）」，按钮口径从 `LoRA 2/2 已选` 改成 `LoRA 3 已选`。
+- 交换工作流仍然清空勾选（anima 的 LoRA 挂到 moss 底模上只会出垃圾），这条没动。
+- 单测：rewrite 45 / client 28 / hub 29 全过，`node --check` 两个文件都过。另外对 `workflows/` 里 8 份工作流各挂 2 条跑了一遍：节点不悬空、KSampler→底模的链能走通、anime-switch 的开关两支都吃得到新链、原图未被就地修改。
+- 注意：宿主半改了要重启 DSH 才生效（客户端半刷新页面即可）。换 LoRA 组合前照旧先 `POST /free`，4 GB 卡叠之前看余量。
+
 

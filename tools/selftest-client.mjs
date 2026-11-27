@@ -140,7 +140,7 @@ check('busy 状态换成 GIF 贴纸', () => {
 check('五个卡片 / 四个标签页仍在', () => {
   const cards = (source.match(/className: 'cw-card/g) ?? []).length
   assert(cards >= 5, 'cw-card 只有 ' + cards + ' 个')
-  for (const tab of ["setTab('work')", "setTab('gallery')", "setTab('catalog')", "setTab('hub')"]) {
+  for (const tab of ["tabItem('work'", "tabItem('gallery'", "tabItem('catalog'", "tabItem('hub'"]) {
     assert(source.includes(tab), '缺标签 ' + tab)
   }
   assert(source.includes("'模型库 · Civitai'"), '第四个标签文案没接上')
@@ -327,6 +327,86 @@ check('LoRA 多选器：勾选顺序写进槽位', () => {
   assert(source.includes('refreshTokenRef'), '下完没自动刷新目录')
   assert(source.includes('onRefreshDirs()'), '没触发目录刷新')
   assert(source.includes("'刷新'"), 'LoRA 面板里没有手动刷新')
+})
+
+check('v1.7：token 层 + 容器查询 + 四档断点', () => {
+  const css = cssBlock()
+  for (const token of ['§A token', '§B base', '§C component', '§D motion', '§E responsive', '§F fallback', 'container-type:inline-size', '--cw-bg:', '--cw-text:', '--cw-line:', '--cw-ok-soft', '--cw-ease:', '--cw-d1:', '--cw-z-lightbox']) {
+    assert(css.includes(token), 'CSS 缺 ' + token)
+  }
+  for (const q of ['@container (max-width:1279px)', '@container (max-width:1023px)', '@container (max-width:767px)', '@container (max-width:479px)']) {
+    assert(css.includes(q), '缺断点 ' + q)
+  }
+  assert(!css.replace(/ /g, '').includes('container-type:size'), '不能写 container-type:size（会掐掉高度自适应）')
+})
+
+check('v1.7：组件区只剩四类豁免色', () => {
+  const css = cssBlock()
+  const a = css.indexOf('/* §A token')
+  const b = css.indexOf('/* §B base')
+  const f = css.indexOf('/* §F fallback')
+  assert(a >= 0 && b > a && f > b, '缺 §A / §B / §F 分段标记')
+  const tokens = css.slice(a, b) + css.slice(f)
+  const components = css.slice(b, f)
+  assert(tokens.split('#').length - 1 >= 10, '§A 的颜色定义太少，token 层没建起来')
+  const rest = components.split('background:#fff').join('')
+  const hashes = rest.split('#').length - 1
+  const rgb = rest.split('rgb(').length - 1 + rest.split('rgba(').length - 1
+  assert(hashes === 0, '组件区还有 #hex 硬编码色：' + hashes + ' 处')
+  assert(rgb === 0, '组件区还有 rgb()/rgba() 硬编码色：' + rgb + ' 处')
+  assert(components.split('background:#fff').length - 1 === 3, '贴纸白底应恰好 3 处（贴纸 + 悬停 + 忙碌按钮）')
+})
+
+check('v1.7：动效 token + 十类场景 + 全量降级', () => {
+  const css = cssBlock()
+  const keyframes = [...css.matchAll(/@keyframes ([A-Za-z0-9-]+)/g)].map((m) => m[1])
+  assert(keyframes.length >= 9, 'keyframes 只有 ' + keyframes.length + ' 个')
+  for (const need of ['cw-rise', 'cw-slide-right', 'cw-sheet-up', 'cw-fade', 'cw-pop', 'cw-shimmer', 'cw-indeterminate', 'cw-spin', 'cw-think-dot']) {
+    assert(keyframes.includes(need), '缺关键帧 ' + need)
+  }
+  assert(css.includes('.cw-root *,.cw-root *::before,.cw-root *::after'), 'reduced-motion 降级没限定在 .cw-root 作用域')
+  const globalStar = css.split(String.fromCharCode(10)).some((line) => {
+    const t = line.trim()
+    return t.startsWith('*,') || t.startsWith('*, *')
+  })
+  assert(!globalStar, '降级作用域写成了全局 *（会改宿主别的面板）')
+  assert(css.includes('data-cw-motion="reduce"'), '缺手动开关选择器')
+  assert(!css.includes('will-change'), '不该加 will-change（用户要动效不等于要布局抖动）')
+  assert(css.includes('animation-delay:calc(min(var(--cw-i,0),8) * 40ms)'), '卡片 stagger 没接上 --cw-i')
+})
+
+check('v1.7：标签栏横滑 + 底部 tab bar + 三态组件', () => {
+  const css = cssBlock()
+  for (const token of ['.cw-tabbar', '.cw-state', '.cw-skel', '.cw-spinner']) assert(css.includes(token), 'CSS 缺 ' + token)
+  assert(css.includes('overflow-x:auto'), '标签栏没开横滑')
+  assert(source.includes("className: 'cw-tabbar'"), '页面没有底部 tab bar 节点')
+  assert(source.includes("role: 'tab'"), '标签没有 role=tab')
+  assert(source.includes("'aria-selected': tab === id"), '标签没有 aria-selected')
+  assert(css.includes('env(safe-area-inset-bottom'), '底栏没留安全区内边距')
+  assert(source.includes('const tabItem = (id, label)'), '标签没抽成共用节点（顶栏/底栏会各写一份）')
+})
+
+check('v1.7：动效开关挂在 matchMedia 上，卸载能撤', () => {
+  assert(source.includes("window.matchMedia('(prefers-reduced-motion: reduce)')"), '没读系统动效偏好')
+  assert(source.includes('dataset.cwMotion'), '没写 data-cw-motion')
+  assert(source.includes('function releaseCss()'), '没有 releaseCss')
+  assert(source.includes('releaseCss()'), '卸载没调 releaseCss')
+  assert(source.includes("addEventListener('change', syncMotion)"), '没监听系统偏好变化')
+  assert(source.includes('cssHandle.remove()'), '卸载没摘 <style>')
+})
+
+check('v1.7：主题跟随只走宿主变量，不自己切深色', () => {
+  const css = cssBlock()
+  assert(css.includes('@media (prefers-color-scheme:dark)'), '缺深色兜底')
+  const darkAt = css.indexOf('@media (prefers-color-scheme:dark)')
+  const darkBlock = css.slice(darkAt)
+  assert(!darkBlock.includes('--dsw-alias-'), '深色兜底块动了宿主变量（会和宿主打架）')
+  assert(!css.includes('colorScheme'), '插件不许写 colorScheme')
+  assert(!source.includes('data-ds-dark-theme'), '插件不许写宿主深色属性')
+  assert(css.includes('background:var(--cw-text);border-color:transparent;color:var(--cw-surface)'), '主按钮不是反色方案')
+  assert(!css.includes('--cw-accent:var(--dsw-alias-brand-primary)'), '强调色还挂在 brand-primary 上（本机是白色）')
+  assert(css.includes('var(--dsw-alias-bg-base,var(--cw-fallback-bg))'), '面 token 没接兜底')
+  assert(css.includes('var(--dsw-alias-label-primary,var(--cw-fallback-text))'), '字 token 没接兜底')
 })
 
 console.log('')
