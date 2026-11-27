@@ -1,0 +1,60 @@
+{
+  "format": 1,
+  "title": {
+    "en": "ComfyUI Workbench",
+    "zh": "ComfyUI 工作台"
+  },
+  "description": {
+    "en": "Local ComfyUI image-generation workbench for DeepSeek Harness: workflow picker, LoRA multi-select, prompt rewriting, gallery and model hub.",
+    "zh": "给 DSH 的本地 ComfyUI 出图工作台：工作流选择、LoRA 多选、大模型改写、图库与模型库。"
+  },
+  "metadata": {
+    "categories": {},
+    "labels": {},
+    "sortKeys": {}
+  },
+  "plugins": [
+    {
+      "name": "dsh-comfy-workbench",
+      "title": {
+        "en": "ComfyUI Workbench",
+        "zh": "ComfyUI 工作台"
+      },
+      "description": {
+        "en": "Local ComfyUI image-generation workbench for DeepSeek Harness.",
+        "zh": "给 DSH 的本地 ComfyUI 出图工作台。"
+      },
+      "icon": "./assets/icon.svg",
+      "author": "slvaickill-rgb",
+      "homepage": "https://github.com/slvaickill-rgb/dsh-comfy-workbench",
+      "repository": {
+        "url": "https://github.com/slvaickill-rgb/dsh-comfy-workbench"
+      },
+      "metadata": {
+        "keywords": [
+          "comfyui",
+          "image",
+          "workbench",
+          "llm",
+          "stable-diffusion"
+        ],
+        "labels": [],
+        "sortKeys": {}
+      },
+      "versions": [
+        {
+          "version": "1.9.0",
+          "publishTimestamp": 1795792111,
+          "source": {
+            "type": "git",
+            "url": "https://github.com/slvaickill-rgb/dsh-comfy-workbench",
+            "commit": "eabfd2ecd42e20d7b515acd9cdcc9ba3cc001821"
+          },
+          "engines": {
+            "dsh": ">=0.2.2-rc.1 <0.2.3-0"
+          }
+        }
+      ]
+    }
+  ]
+}
