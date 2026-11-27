@@ -21,6 +21,7 @@
 - **参数区改版（21:05）**：环境卡那四行（工作流 / 底模 / 尺寸 / 步数 / 大模型）原来是 `.cw-grid`（`auto-fit minmax(150px,1fr)`）里塞 `.cw-row`（flex + wrap）。格子一窄，`flex-wrap` 就把**控件甩到第二行**，标签孤零零留在上面——面板越宽格子越多越窄，反而更难看。
   改成 `.cw-fields` + `.cw-field`：`display:grid;grid-template-columns:max-content minmax(0,1fr)`，标签只占自己那点宽度、控件吃掉剩下的，**一行永远不换行**；控件 `width:100%;max-width:none`。尺寸用 `.cw-field-size`（标签 / 宽 / × / 高 四列），步数用 `.cw-field-steps`（标签 / 步数 / LoRA 徽标 三列）。窄到 320 也是「标签在左、框在右」，不再上下错位。
   断言：visual-check 新增「标签与控件永远同一行」——1024 与 480 两档逐个 `.cw-field` 比标签与控件的中线，偏差 >14px 就报错；样本里也换成了新的 `.cw-fields` 结构。
+- **输出卡（21:25）**：`.cw-out` 原来跟着 `@container (max-width:1023px)` 一起竖排，878 CSS px 的面板（1317 物理 px @1.5 缩放）正好中招——图占满一行、日志被挤到下面。改成单独 `@container (max-width:719px)`（就是旧样式那条 720），宽屏恢复「左图右日志」。visual-check 加一条：878 档必须并排、390 档必须竖排。
 - **真机验收还差三步**（要人点）：① 重启 DSH 走一遍四个标签页；② 设置里主题设「跟随系统」再切 Windows 深浅，看背景 / 文字 / 描边跟着换且主按钮不消失；③ 窗口拖到最窄（~320px）确认无横向滚动、底栏可用、LoRA 面板变底部 sheet。
 ## 1.8.0（2026-11-27）
 

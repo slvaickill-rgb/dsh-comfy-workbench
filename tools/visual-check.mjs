@@ -222,6 +222,13 @@ check('固定高度 · 头部/标签不被挤扁，body 自己滚', () => {
   assert(m.root.scrollHeight <= m.root.clientHeight + 2, '.cw-root 自己被内容撑高了：' + m.root.scrollHeight + ' > ' + m.root.clientHeight)
 })
 
+check('输出卡 · 宽屏图与日志并排，窄屏才竖排', () => {
+  const wide = measure('out-878', { theme: 'dark', width: 878, height: 700 })
+  assert(wide.outPair.img !== null && wide.outPair.log !== null, '样张缺 .cw-out-img / .cw-log')
+  assert(wide.outPair.img.r <= wide.outPair.log.l + 1, '878 档图与日志没并排（图右 ' + wide.outPair.img.r + ' / 日志左 ' + wide.outPair.log.l + '）')
+  const narrow = measure('out-390', { theme: 'dark', width: 390, height: 760 })
+  assert(narrow.outPair.log.t >= narrow.outPair.img.b - 1, '390 档该竖排（日志顶 ' + narrow.outPair.log.t + ' / 图底 ' + narrow.outPair.img.b + '）')
+})
 check('参数区 · 标签与控件永远同一行（挤压时不掉行）', () => {
   for (const width of [1024, 480]) {
     const m = measure('fields-' + width, { theme: 'dark', width, height: width === 480 ? 854 : 768, bounded: true })

@@ -129,6 +129,7 @@ const METRICS_SCRIPT = [
   '    headRect:head?rect(head):null,',
   '    bodyScroll:body?{scrollHeight:body.scrollHeight,clientHeight:body.clientHeight}:null,',
   '    fieldPairs:[].slice.call(document.querySelectorAll(".cw-field")).map(function(el){var l=el.querySelector(".cw-label");var c=el.lastElementChild;return {label:l?rect(l):null,control:c?rect(c):null}}),',
+  '    outPair:(function(){var a=document.querySelector(".cw-out-img");var b=document.querySelector(".cw-log");return {img:a?rect(a):null,log:b?rect(b):null}})(),',
   '    bodyRect:body?rect(body):null,',
   '    cards:[].slice.call(document.querySelectorAll(".cw-card,.cw-hub-tile")).map(rect),',
   '    buttons:[].slice.call(document.querySelectorAll(".cw-btn,.cw-chip,.cw-folder")).map(function(el){var r=rect(el);return {w:r.w,h:r.h,text:(el.textContent||"").slice(0,12)}}),',
