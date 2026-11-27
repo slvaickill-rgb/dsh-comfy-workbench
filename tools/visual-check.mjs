@@ -222,6 +222,19 @@ check('固定高度 · 头部/标签不被挤扁，body 自己滚', () => {
   assert(m.root.scrollHeight <= m.root.clientHeight + 2, '.cw-root 自己被内容撑高了：' + m.root.scrollHeight + ' > ' + m.root.clientHeight)
 })
 
+check('灯箱 · 大图完整落在灯箱里（不裁切）', () => {
+  // 踩过：包裹层 auto 宽高 + 图 max-width:100% 互相百分比，等于没约束，图按原尺寸撑出窗口被裁
+  for (const width of [900, 480]) {
+    const m = measure('lightbox-' + width, { theme: 'dark', width, height: 600, lightbox: true })
+    assert(m.lb !== null, width + ' 档样张里没有灯箱')
+    const lb = m.lb
+    assert(lb.img.w > 0 && lb.img.h > 0, width + ' 档大图尺寸为 0')
+    assert(lb.img.w >= 240, width + ' 档大图太小：' + lb.img.w + 'px')
+    assert(lb.img.t >= lb.lightbox.t - 1 && lb.img.b <= lb.lightbox.b + 1, width + ' 档大图上下被裁：img ' + lb.img.t + '-' + lb.img.b + ' / 灯箱 ' + lb.lightbox.t + '-' + lb.lightbox.b)
+    assert(lb.img.l >= lb.lightbox.l - 1 && lb.img.r <= lb.lightbox.r + 1, width + ' 档大图左右被裁：img ' + lb.img.l + '-' + lb.img.r + ' / 灯箱 ' + lb.lightbox.l + '-' + lb.lightbox.r)
+    assert(lb.wrap.w > 0 && lb.wrap.h > 0, width + ' 档包裹层尺寸为 0')
+  }
+})
 check('层叠顺序 · LoRA 下拉盖住后面的卡片', () => {
   // 入场动画一旦用 fill-mode:both，卡片就永久是层叠上下文，下拉会被后面的卡盖住
   const m = measure('overlay', { theme: 'dark', width: 900, height: 620, overlay: true })

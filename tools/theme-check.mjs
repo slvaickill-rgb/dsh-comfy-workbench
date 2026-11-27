@@ -130,6 +130,7 @@ const METRICS_SCRIPT = [
   '    bodyScroll:body?{scrollHeight:body.scrollHeight,clientHeight:body.clientHeight}:null,',
   '    fieldPairs:[].slice.call(document.querySelectorAll(".cw-field")).map(function(el){var l=el.querySelector(".cw-label");var c=el.lastElementChild;return {label:l?rect(l):null,control:c?rect(c):null}}),',
   '    outPair:(function(){var a=document.querySelector(".cw-out-img");var b=document.querySelector(".cw-log");return {img:a?rect(a):null,log:b?rect(b):null}})(),',
+  '    lb:(function(){var lb=document.querySelector(".cw-lightbox");if(!lb)return null;var w=document.querySelector(".cw-lightbox-wrap");var i=document.querySelector(".cw-lightbox img");var n=document.querySelector(".cw-lightbox-info");return {lightbox:rect(lb),wrap:w?rect(w):null,img:i?rect(i):null,info:n?rect(n):null}})(),',
   '    stack:(function(){var p=document.querySelector(".cw-lora-pop");if(!p)return null;var r=p.getBoundingClientRect();var hit=document.elementFromPoint(r.left+40,r.top+40);return {inPop:p.contains(hit),hit:hit?(hit.className||hit.tagName):null}})(),',
   '    bodyRect:body?rect(body):null,',
   '    cards:[].slice.call(document.querySelectorAll(".cw-card,.cw-hub-tile")).map(rect),',
@@ -408,6 +409,23 @@ const OVERLAY_BODY = [
   '  </div>',
   '</div>',
 ].join(LF)
+
+/** 灯箱样张：1024² 假图 + 230px 信息卡，检查大图有没有被裁。 */
+const LIGHTBOX_SVG = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024"><rect width="1024" height="1024" fill="#3a5"/></svg>')
+const LIGHTBOX_BODY = [
+  '<div class="cw-root" style="height:auto">',
+  '  <div class="cw-lightbox">',
+  '    <div class="cw-lightbox-wrap"><img src="' + LIGHTBOX_SVG + '" alt="大图"></div>',
+  '    <div class="cw-lightbox-info">',
+  '      <div style="font-weight:600;margin-bottom:6px">moss-standard_00080_.png</div>',
+  '      <div class="cw-path">moss/2026-11</div>',
+  '      <div style="margin-top:6px">1.4 MB · 2026-11-27 21:46</div>',
+  '      <div class="cw-row" style="margin-top:10px"><button class="cw-btn">保存图像</button><button class="cw-btn">复制图像</button></div>',
+  '      <div style="margin-top:10px;opacity:.6">点背景或按 Esc 关闭</div>',
+  '    </div>',
+  '  </div>',
+  '</div>',
+].join(LF)
 export function buildHtml(options) {
   const opts = options === undefined ? {} : options
   const css = extractCss()
@@ -417,11 +435,13 @@ export function buildHtml(options) {
   const width = typeof opts.width === 'number' ? LF + 'body{width:' + opts.width + 'px;}' : ''
   const metrics = opts.metrics === true ? METRICS_SCRIPT : ''
   // bounded：模拟真实面板——高度被宿主限死，靠 .cw-body 自己滚（样张默认 height:auto，测不出挤压）
-  const body = opts.overlay === true
-    ? OVERLAY_BODY
-    : (opts.bounded === true
-      ? SAMPLE_BODY.split('style="height:auto"').join('').split('style="overflow:visible"').join('')
-      : SAMPLE_BODY)
+  const body = opts.lightbox === true
+    ? LIGHTBOX_BODY
+    : opts.overlay === true
+      ? OVERLAY_BODY
+      : (opts.bounded === true
+        ? SAMPLE_BODY.split('style="height:auto"').join('').split('style="overflow:visible"').join('')
+        : SAMPLE_BODY)
   return '<!doctype html><html><head><meta charset="utf-8"><style>' + base + width + css + '</style></head><body>' + body + metrics + '</body></html>'
 }
 
