@@ -24,6 +24,7 @@
 - **输出卡（21:25）**：`.cw-out` 原来跟着 `@container (max-width:1023px)` 一起竖排，878 CSS px 的面板（1317 物理 px @1.5 缩放）正好中招——图占满一行、日志被挤到下面。改成单独 `@container (max-width:719px)`（就是旧样式那条 720），宽屏恢复「左图右日志」。visual-check 加一条：878 档必须并排、390 档必须竖排。
 - **层叠顺序（21:40）**：`.cw-lora-pop` 被后面的「思考」卡盖住——不是 z-index 小（本来就是 40），是卡片入场动画 `animation-fill-mode:both` 让卡片**永久**成为层叠上下文，下拉被困在环境卡里，后渲染的卡自然压上去。改成 `backwards`：动画结束即回到自然态（末帧和自然态一致，看不出差别），不留上下文。9 处入场/弹出动画一起改。visual-check 加「层叠顺序」断言：把动画 `animation-delay:-10s` 钉到终态，再用 `elementFromPoint` 验下拉是否在最上——用 `both` 时必失败（实测 `both → inPop:false`，`backwards → inPop:true`）。
 - **灯箱大图（21:55）**：点开看大图上下被裁。根子还是百分比——`.cw-lightbox-wrap` 是 flex 子项、宽高 `auto`，图上的 `max-width:100%` / `max-height:100%` 去比一个 `auto` 尺寸，等于没约束，图按原尺寸（1024² 起）撑开，只被窗口裁掉。改成 `.cw-lightbox{display:grid;grid-template-columns:minmax(0,1fr) 230px;grid-template-rows:minmax(0,1fr)}`，包裹层 `width/height:100%` 拿到确定高度，图 `max-*:100% + object-fit:contain` 才真正生效；窄容器（≤767）改单列「图在上、信息卡在下」。visual-check 加「灯箱大图完整落在灯箱里」：900 / 480 两档验大图四边都在灯箱内、且不小于 240px。
+- **灯箱关不掉（22:05）**：上一轮为了给大图确定尺寸，把 `.cw-lightbox-wrap` 改成 `width/height:100%` 铺满格子；它身上的 `stopPropagation` 于是把**整片**点击都吃了，点图、点空白都关不掉。改：包裹层和图都 `pointer-events:none`（点图 / 点空白都透到遮罩＝关闭），只有 NSFW 毛玻璃盖层自己接事件（化开）；另外补一个右上角 ✕（`aria-label` 关闭预览），信息卡提示改成「点背景、按 Esc 或右上角 ✕ 关闭」。断言三道：显示层 `scrimHit` / `imgHit` 必须命中遮罩、`closeHit` 必须命中 ✕；selftest 静态钉住两处 `pointer-events:none` 和 ✕ 节点。
 - **真机验收还差三步**（要人点）：① 重启 DSH 走一遍四个标签页；② 设置里主题设「跟随系统」再切 Windows 深浅，看背景 / 文字 / 描边跟着换且主按钮不消失；③ 窗口拖到最窄（~320px）确认无横向滚动、底栏可用、LoRA 面板变底部 sheet。
 ## 1.8.0（2026-11-27）
 

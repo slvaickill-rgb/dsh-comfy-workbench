@@ -386,6 +386,18 @@ check('v1.7：标签栏横滑 + 底部 tab bar + 三态组件', () => {
   assert(source.includes('const tabItem = (id, label)'), '标签没抽成共用节点（顶栏/底栏会各写一份）')
 })
 
+check('v1.7：灯箱点空白能关 + 有关闭按钮', () => {
+  const css = cssBlock()
+  const wrapRule = css.split('.cw-lightbox-wrap{')[1]
+  assert(typeof wrapRule === 'string', 'CSS 缺 .cw-lightbox-wrap 规则')
+  assert(wrapRule.slice(0, 240).includes('pointer-events:none'), '包裹层没关 pointer-events，铺满格子后会吞掉整片点击（背景关不掉）')
+  assert(css.includes('.cw-lightbox-wrap img{display:block;'), '图的规则没了')
+  const imgRule = css.split('.cw-lightbox-wrap img{')[1] ?? ''
+  assert(imgRule.slice(0, 320).includes('pointer-events:none'), '图没让出 pointer-events，点图关不掉预览')
+  assert(source.includes("className: 'cw-lightbox-close'"), '没有关闭按钮节点')
+  assert(css.includes('.cw-lightbox-close{'), '关闭按钮没样式')
+})
+
 check('v1.7：动效开关挂在 matchMedia 上，卸载能撤', () => {
   assert(source.includes("window.matchMedia('(prefers-reduced-motion: reduce)')"), '没读系统动效偏好')
   assert(source.includes('dataset.cwMotion'), '没写 data-cw-motion')

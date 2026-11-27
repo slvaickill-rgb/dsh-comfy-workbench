@@ -233,6 +233,12 @@ check('灯箱 · 大图完整落在灯箱里（不裁切）', () => {
     assert(lb.img.t >= lb.lightbox.t - 1 && lb.img.b <= lb.lightbox.b + 1, width + ' 档大图上下被裁：img ' + lb.img.t + '-' + lb.img.b + ' / 灯箱 ' + lb.lightbox.t + '-' + lb.lightbox.b)
     assert(lb.img.l >= lb.lightbox.l - 1 && lb.img.r <= lb.lightbox.r + 1, width + ' 档大图左右被裁：img ' + lb.img.l + '-' + lb.img.r + ' / 灯箱 ' + lb.lightbox.l + '-' + lb.lightbox.r)
     assert(lb.wrap.w > 0 && lb.wrap.h > 0, width + ' 档包裹层尺寸为 0')
+    // 包裹层为拿确定尺寸被迫铺满格子；点空白必须透到遮罩，否则关不掉
+    assert(lb.scrimHit === 'cw-lightbox', width + ' 档点空白关不掉：命中的是 ' + lb.scrimHit + '（包裹层在吞点击）')
+    assert(lb.close !== null && lb.close.w >= 28, width + ' 档没有可点的关闭按钮')
+    assert(String(lb.closeHit).indexOf('cw-lightbox-close') >= 0, width + ' 档关闭按钮点不到：' + lb.closeHit)
+    // 点图本身也要能关：图必须让事件透到遮罩
+    assert(lb.imgHit === 'cw-lightbox', width + ' 档点图关不掉：命中的是 ' + lb.imgHit)
   }
 })
 check('层叠顺序 · LoRA 下拉盖住后面的卡片', () => {
