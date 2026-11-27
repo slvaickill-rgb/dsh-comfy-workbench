@@ -222,6 +222,12 @@ check('固定高度 · 头部/标签不被挤扁，body 自己滚', () => {
   assert(m.root.scrollHeight <= m.root.clientHeight + 2, '.cw-root 自己被内容撑高了：' + m.root.scrollHeight + ' > ' + m.root.clientHeight)
 })
 
+check('层叠顺序 · LoRA 下拉盖住后面的卡片', () => {
+  // 入场动画一旦用 fill-mode:both，卡片就永久是层叠上下文，下拉会被后面的卡盖住
+  const m = measure('overlay', { theme: 'dark', width: 900, height: 620, overlay: true })
+  assert(m.stack !== null, '样张里没有 .cw-lora-pop')
+  assert(m.stack.inPop === true, '下拉被后面的卡片盖住了（命中的是 ' + m.stack.hit + '）——入场动画多半又用回 fill-mode:both 了')
+})
 check('输出卡 · 宽屏图与日志并排，窄屏才竖排', () => {
   const wide = measure('out-878', { theme: 'dark', width: 878, height: 700 })
   assert(wide.outPair.img !== null && wide.outPair.log !== null, '样张缺 .cw-out-img / .cw-log')

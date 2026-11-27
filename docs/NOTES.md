@@ -22,6 +22,7 @@
   改成 `.cw-fields` + `.cw-field`：`display:grid;grid-template-columns:max-content minmax(0,1fr)`，标签只占自己那点宽度、控件吃掉剩下的，**一行永远不换行**；控件 `width:100%;max-width:none`。尺寸用 `.cw-field-size`（标签 / 宽 / × / 高 四列），步数用 `.cw-field-steps`（标签 / 步数 / LoRA 徽标 三列）。窄到 320 也是「标签在左、框在右」，不再上下错位。
   断言：visual-check 新增「标签与控件永远同一行」——1024 与 480 两档逐个 `.cw-field` 比标签与控件的中线，偏差 >14px 就报错；样本里也换成了新的 `.cw-fields` 结构。
 - **输出卡（21:25）**：`.cw-out` 原来跟着 `@container (max-width:1023px)` 一起竖排，878 CSS px 的面板（1317 物理 px @1.5 缩放）正好中招——图占满一行、日志被挤到下面。改成单独 `@container (max-width:719px)`（就是旧样式那条 720），宽屏恢复「左图右日志」。visual-check 加一条：878 档必须并排、390 档必须竖排。
+- **层叠顺序（21:40）**：`.cw-lora-pop` 被后面的「思考」卡盖住——不是 z-index 小（本来就是 40），是卡片入场动画 `animation-fill-mode:both` 让卡片**永久**成为层叠上下文，下拉被困在环境卡里，后渲染的卡自然压上去。改成 `backwards`：动画结束即回到自然态（末帧和自然态一致，看不出差别），不留上下文。9 处入场/弹出动画一起改。visual-check 加「层叠顺序」断言：把动画 `animation-delay:-10s` 钉到终态，再用 `elementFromPoint` 验下拉是否在最上——用 `both` 时必失败（实测 `both → inPop:false`，`backwards → inPop:true`）。
 - **真机验收还差三步**（要人点）：① 重启 DSH 走一遍四个标签页；② 设置里主题设「跟随系统」再切 Windows 深浅，看背景 / 文字 / 描边跟着换且主按钮不消失；③ 窗口拖到最窄（~320px）确认无横向滚动、底栏可用、LoRA 面板变底部 sheet。
 ## 1.8.0（2026-11-27）
 

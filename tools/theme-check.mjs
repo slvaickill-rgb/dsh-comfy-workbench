@@ -130,6 +130,7 @@ const METRICS_SCRIPT = [
   '    bodyScroll:body?{scrollHeight:body.scrollHeight,clientHeight:body.clientHeight}:null,',
   '    fieldPairs:[].slice.call(document.querySelectorAll(".cw-field")).map(function(el){var l=el.querySelector(".cw-label");var c=el.lastElementChild;return {label:l?rect(l):null,control:c?rect(c):null}}),',
   '    outPair:(function(){var a=document.querySelector(".cw-out-img");var b=document.querySelector(".cw-log");return {img:a?rect(a):null,log:b?rect(b):null}})(),',
+  '    stack:(function(){var p=document.querySelector(".cw-lora-pop");if(!p)return null;var r=p.getBoundingClientRect();var hit=document.elementFromPoint(r.left+40,r.top+40);return {inPop:p.contains(hit),hit:hit?(hit.className||hit.tagName):null}})(),',
   '    bodyRect:body?rect(body):null,',
   '    cards:[].slice.call(document.querySelectorAll(".cw-card,.cw-hub-tile")).map(rect),',
   '    buttons:[].slice.call(document.querySelectorAll(".cw-btn,.cw-chip,.cw-folder")).map(function(el){var r=rect(el);return {w:r.w,h:r.h,text:(el.textContent||"").slice(0,12)}}),',
@@ -378,6 +379,35 @@ const SAMPLE_BODY = [
   '</div>',
 ].join(LF)
 
+
+/**
+ * 层叠顺序样张：一张卡里开着 .cw-lora-pop，紧跟一张卡。
+ * 关键在 <style> 里的 animation-delay:-10s —— 把入场动画直接推到「已结束」，
+ * 于是 fill-mode:both 留下的层叠上下文会当场暴露（下拉被后一张卡盖住）。
+ * 虚拟时间下动画不前进，所以必须这样钉住终态才测得准。
+ */
+const OVERLAY_BODY = [
+  '<style>.cw-root *{animation-delay:-10s !important;}</style>',
+  '<div class="cw-root" style="height:auto">',
+  '  <div class="cw-body" style="overflow:visible">',
+  '    <div class="cw-card">',
+  '      <div class="cw-card-head"><h3 class="cw-card-title">环境 · LoRA 面板打开</h3></div>',
+  '      <div class="cw-field cw-field-steps"><span class="cw-label">步数</span><input class="cw-input cw-num" type="number" value="20">',
+  '        <span class="cw-lora"><button class="cw-chip cw-chip-btn" aria-expanded="true">LoRA 1 已选 ▲</button>',
+  '          <div class="cw-lora-pop">',
+  '            <div class="cw-lora-head"><span class="cw-card-title">LoRA 多选</span></div>',
+  '            <div class="cw-lora-list"><div class="cw-lora-item on"><span class="cw-lora-name">SKP_MOS_Dv1.safetensors</span></div></div>',
+  '          </div>',
+  '        </span>',
+  '      </div>',
+  '    </div>',
+  '    <div class="cw-card">',
+  '      <div class="cw-card-head"><h3 class="cw-card-title">思考</h3></div>',
+  '      <p class="cw-empty">后面这张卡如果盖住下拉，就是入场动画用了 fill-mode:both。</p>',
+  '    </div>',
+  '  </div>',
+  '</div>',
+].join(LF)
 export function buildHtml(options) {
   const opts = options === undefined ? {} : options
   const css = extractCss()
@@ -387,9 +417,11 @@ export function buildHtml(options) {
   const width = typeof opts.width === 'number' ? LF + 'body{width:' + opts.width + 'px;}' : ''
   const metrics = opts.metrics === true ? METRICS_SCRIPT : ''
   // bounded：模拟真实面板——高度被宿主限死，靠 .cw-body 自己滚（样张默认 height:auto，测不出挤压）
-  const body = opts.bounded === true
-    ? SAMPLE_BODY.split('style="height:auto"').join('').split('style="overflow:visible"').join('')
-    : SAMPLE_BODY
+  const body = opts.overlay === true
+    ? OVERLAY_BODY
+    : (opts.bounded === true
+      ? SAMPLE_BODY.split('style="height:auto"').join('').split('style="overflow:visible"').join('')
+      : SAMPLE_BODY)
   return '<!doctype html><html><head><meta charset="utf-8"><style>' + base + width + css + '</style></head><body>' + body + metrics + '</body></html>'
 }
 
