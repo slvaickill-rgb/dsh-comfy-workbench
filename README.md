@@ -50,18 +50,41 @@ node tools/install.mjs     # 建联接 + 登记 profile（幂等）
 出图要四个权重（MOSS 底模 / 文本编码器 / VAE / 4 步 LoRA，共约 12 GB），下载地址、放哪个目录、SHA-256
 都写在 **[SETUP.md](SETUP.md)**；换机器、填 `config.json`、故障速查也在那份里。
 
-## 在线更新
+## 安装 / 在线更新
 
-别的主机不用拷目录，把这份索引加进「插件市场索引源」就行：
+**主路：npm**（宿主用 `pnpm view` 查版本表，所以 npm 上有新版时插件页会出现「更新」）
+
+```bash
+npm i dsh-comfy-workbench
+# 或 pnpm add dsh-comfy-workbench
+```
+
+包地址：https://www.npmjs.com/package/dsh-comfy-workbench
+
+**备用：插件市场索引**（不用 npm、或 npm 装不上时）
 
 ```
 https://raw.githubusercontent.com/slvaickill-rgb/dsh-comfy-workbench/main/plugin-index.json
 ```
 
-索引是仓库根目录的 `plugin-index.json`（DSH format 1），每个版本钉死一个 git commit。
-宿主对本地/私有包不查 npm，所以「有没有更新」只能靠这份索引——不填它，就永远显示当前版本、没有更新标识。
+加进 DSH 的「插件市场索引源」（`plugin_market.indexes`）。索引是仓库根目录的 `plugin-index.json`（DSH format 1），
+每个版本钉死一个 git commit，装出来是确定快照。
 
-维护者发版：改 `package.json` 的 version → commit → `node tools/make-index.mjs` → `node tools/selftest-index.mjs` → 提交索引并 push。
+**维护者发版**（两条一起走）：
+
+```bash
+# 1) 改 package.json 的 version，然后
+git commit -am "release: x.y.z"
+# 2) npm（需要交互式 2FA：网页授权链接只在真终端里完整打印）
+npm publish
+# 3) 索引
+node tools/make-index.mjs && node tools/selftest-index.mjs
+git commit -am "chore(release): 索引指向 x.y.z"
+git push
+```
+
+> npm 首次发布会先占一个 `0.0.0-stage` 占位桩，真版本进「分阶段发布」队列审查；通过后 `latest` 自动指过去。
+> 审查期间别删包、别 unpublish 占位桩。
 ## 快速验证
 
 ```bash

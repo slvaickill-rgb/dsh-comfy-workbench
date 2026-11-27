@@ -28,6 +28,9 @@
 - **灯箱压到宿主控件（22:20）**：右上角浮动的 ✕ 和宿主窗口的 — □ ✕ 撞在一起。查了宿主的实现：`dsh-client-ui-attachment` 的 `MessageImage.tsx` 用的是 `@deepseek-ai/dsh-client-ui-primitives` 里的 `ImageLightbox`（那个包不在 asar 的 node_modules 里，是宿主运行时注入的），但要点很清楚——**宿主窗口和停靠面板都把自己的最小化/最大化/关闭放在右上角**，任何浮在右上角的东西都会打架。
   改法两条：① 灯箱整体 `inset:8px` + 圆角，外圈用同色 `box-shadow` 补满（看着仍是整屏压暗，但内容永远离窗口边一条缝，「比边框小一圈」）；② 关闭按钮从右上角挪到信息卡里，底部一条全宽「关闭预览」，卡片内布局，彻底不抢位置。
   断言：灯箱四边 inset ≥ 6px、关闭按钮必须在信息卡范围内、且不得落进窗口右上角 56×64 的宿主控件区。
+- **npm 发布（23:28）**：1.9.0 上了 npmjs —— `dist-tags.latest = 1.9.0`，45 个文件 / 664,396 字节，包里 `lib/client.js` / `lib/index.js` / `lib/typert.host.js` / `cordis.patch.yml` / `plugin-index.json` / `assets/icon.svg` 都在。两个坑记一下：
+  1. `npm publish` 要**交互式 2FA**：网页授权链接在非 TTY 里会被 npm 打码成 `***`，我这边的 shell 永远拿不到，只能人在真终端跑。账号开的是安全密钥（WebAuthn），CLI 用不了它，必须走网页授权那条链接。
+  2. 新包首次发布先落一个 **`0.0.0-stage` 占位桩**（`"stub": true`，README 写 Temporary Holding Version），真版本进「分阶段发布」队列审查；约 5 分钟后放行，`latest` 自动切到 1.9.0。**审查期间不能删包、不能 unpublish 占位桩**，否则队列里的提交一起没。
 - **真机验收还差三步**（要人点）：① 重启 DSH 走一遍四个标签页；② 设置里主题设「跟随系统」再切 Windows 深浅，看背景 / 文字 / 描边跟着换且主按钮不消失；③ 窗口拖到最窄（~320px）确认无横向滚动、底栏可用、LoRA 面板变底部 sheet。
 ## 1.8.0（2026-11-27）
 

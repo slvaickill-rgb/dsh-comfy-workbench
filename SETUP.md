@@ -44,8 +44,15 @@ https://raw.githubusercontent.com/slvaickill-rgb/dsh-comfy-workbench/main/plugin
 之后在插件市场里就能直接装/看到新版本。每个版本在索引里**钉死一个 git commit**，
 装出来是确定的快照，不受分支后续提交影响。
 
-> 为什么不用 npm：宿主对「已安装 bundle 有没有新版本」走的是 `pnpm view <name> versions time dist-tags`；
-> 本插件是 `private: true` 的本地包，npm 上查不到，所以永远没有「更新」标记。索引源这条路不依赖 npm。
+**两条路都开着**：
+
+- **npm**：`npm i dsh-comfy-workbench`（已发布）。宿主对「有没有新版本」走 `pnpm view <name> versions time dist-tags`，
+  所以 npm 上有新版时插件页会出现「更新」。
+- **索引源**：不用 npm 的机器就加上面那条 `plugin-index.json`。
+
+> 插坑记录（2026-11-27）：① `npm publish` 需要**交互式 2FA**，非 TTY 里授权链接会被打码成 `***`，必须在真终端跑；
+> ② 新包首次发布会先发一个 `0.0.0-stage` 占位桩（`"stub": true`），真版本进分阶段发布队列，审查通过后 `latest` 才指过去；
+> ③ 那期间**别删包、别 unpublish 占位桩**，会把队列里的提交一起搞没。
 
 发新版本（维护者）：
 
