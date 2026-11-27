@@ -394,8 +394,12 @@ check('v1.7：灯箱点空白能关 + 有关闭按钮', () => {
   assert(css.includes('.cw-lightbox-wrap img{display:block;'), '图的规则没了')
   const imgRule = css.split('.cw-lightbox-wrap img{')[1] ?? ''
   assert(imgRule.slice(0, 320).includes('pointer-events:none'), '图没让出 pointer-events，点图关不掉预览')
-  assert(source.includes("className: 'cw-lightbox-close'"), '没有关闭按钮节点')
+  assert(source.includes('cw-lightbox-close'), '没有关闭按钮节点')
   assert(css.includes('.cw-lightbox-close{'), '关闭按钮没样式')
+  const infoAt = source.indexOf("className: 'cw-lightbox-info'")
+  const closeAt = source.indexOf('cw-lightbox-close', infoAt)
+  assert(infoAt > 0 && closeAt > infoAt, '关闭按钮没放进信息卡（浮在右上会和宿主窗口控件重叠）')
+  assert(css.includes('.cw-lightbox-head{'), '信息卡标题行没样式')
 })
 
 check('v1.7：动效开关挂在 matchMedia 上，卸载能撤', () => {

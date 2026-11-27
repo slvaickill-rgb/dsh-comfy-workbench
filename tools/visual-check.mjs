@@ -235,10 +235,15 @@ check('灯箱 · 大图完整落在灯箱里（不裁切）', () => {
     assert(lb.wrap.w > 0 && lb.wrap.h > 0, width + ' 档包裹层尺寸为 0')
     // 包裹层为拿确定尺寸被迫铺满格子；点空白必须透到遮罩，否则关不掉
     assert(lb.scrimHit === 'cw-lightbox', width + ' 档点空白关不掉：命中的是 ' + lb.scrimHit + '（包裹层在吞点击）')
-    assert(lb.close !== null && lb.close.w >= 28, width + ' 档没有可点的关闭按钮')
+    assert(lb.close !== null && lb.close.w >= 100 && lb.close.h >= 26, width + ' 档没有可点的关闭按钮')
     assert(String(lb.closeHit).indexOf('cw-lightbox-close') >= 0, width + ' 档关闭按钮点不到：' + lb.closeHit)
     // 点图本身也要能关：图必须让事件透到遮罩
     assert(lb.imgHit === 'cw-lightbox', width + ' 档点图关不掉：命中的是 ' + lb.imgHit)
+    // 灯箱整体要比边框小一圈，内容才不会贴到宿主窗口的 — □ ✕
+    assert(lb.lightbox.l >= 6 && lb.lightbox.t >= 6, width + ' 档灯箱贴左边/上边：' + lb.lightbox.l + ',' + lb.lightbox.t)
+    assert(m.viewport.w - lb.lightbox.r >= 6 && m.viewport.h - lb.lightbox.b >= 6, width + ' 档灯箱贴右边/下边')
+    assert(lb.close !== null && lb.close.l >= lb.info.l - 1 && lb.close.r <= lb.info.r + 1, width + ' 档关闭按钮不在信息卡里')
+    assert(!(lb.close.r > m.viewport.w - 56 && lb.close.t < 64), width + ' 档关闭按钮压在宿主窗口控件区：' + JSON.stringify(lb.close))
   }
 })
 check('层叠顺序 · LoRA 下拉盖住后面的卡片', () => {
